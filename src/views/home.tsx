@@ -1,0 +1,440 @@
+"use client";
+
+import { assetUrl, type AssetImport } from "@/lib/utils";
+import Link from "next/link";
+import { useState, type ComponentType } from "react";
+import {
+  ArrowRight,
+  Calendar,
+  MapPin,
+  Trophy,
+  Users,
+  Newspaper,
+  ZoomIn,
+  ChevronLeft,
+  ChevronRight,
+  X,
+} from "lucide-react";
+import { useI18n } from "@/i18n/I18nProvider";
+import {
+  getHeroContent,
+  getMatchResults,
+  getMedia,
+  getPublishedArticles,
+  getSponsors,
+  getTeams,
+  getUpcomingEvents,
+  pickLocalized,
+} from "@/lib/data/site-data";
+import { BidiText, LtrNum } from "@/components/ui/bidi-text";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import logo from "@/assets/main logo.png";
+
+import brandTogether from "@/assets/branded images/ABF together we play.webp";
+import brandAbf1 from "@/assets/branded images/ABF 1.webp";
+import brandAbf2 from "@/assets/branded images/ABF 2.webp";
+import brandAbf3 from "@/assets/branded images/ABF 3.webp";
+
+import photoAction1 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.00.48.webp";
+import photoAction2 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.02.webp";
+import photoAction3 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.06.webp";
+import photoCourt1 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.00.42.webp";
+import photoCourt2 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.00.51.webp";
+import photoCourt3 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.03.webp";
+import photoPlayer1 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.00.47.webp";
+import photoPlayer2 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.05.webp";
+import photoPlayer3 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.00.49.webp";
+import photoWide from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.01.webp";
+
+function BrandedBanner({ src }: { src: AssetImport }) {
+  return (
+    <section className="container-px py-8 md:py-10">
+      <div className="overflow-hidden rounded-2xl border border-border/60 bg-muted/30 shadow-sm">
+        <img src={assetUrl(src)} alt="" className="mx-auto w-full object-contain" loading="lazy" />
+      </div>
+    </section>
+  );
+}
+
+function PhotoGallery({ images }: { images: AssetImport[] }) {
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+
+  const show = (i: number) => {
+    setActive(i);
+    setOpen(true);
+  };
+
+  const prev = () => setActive((i) => (i === 0 ? images.length - 1 : i - 1));
+  const next = () => setActive((i) => (i === images.length - 1 ? 0 : i + 1));
+
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:gap-3">
+        {images.map((src, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => show(i)}
+            className="group relative overflow-hidden rounded-xl ring-1 ring-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            <img
+              loading="lazy"
+              src={assetUrl(src)}
+              alt=""
+              className="aspect-square w-full object-cover transition duration-300 group-hover:scale-105"
+            />
+            <span className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/30">
+              <ZoomIn className="h-6 w-6 text-white opacity-0 transition group-hover:opacity-100" />
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-h-[95vh] max-w-[min(95vw,1200px)] border-0 bg-transparent p-0 shadow-none [&>button]:hidden">
+          <div className="relative flex items-center justify-center">
+            <button
+              type="button"
+              onClick={prev}
+              className="absolute start-2 top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-black/50 text-white backdrop-blur transition hover:bg-black/70"
+              aria-label="Previous"
+            >
+              <ChevronLeft className="h-5 w-5 rtl:rotate-180" />
+            </button>
+
+            <img
+              src={assetUrl(images[active])}
+              alt=""
+              className="max-h-[85vh] w-auto max-w-full rounded-lg object-contain"
+            />
+
+            <button
+              type="button"
+              onClick={next}
+              className="absolute end-2 top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-black/50 text-white backdrop-blur transition hover:bg-black/70"
+              aria-label="Next"
+            >
+              <ChevronRight className="h-5 w-5 rtl:rotate-180" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="absolute end-2 top-2 z-10 grid h-9 w-9 place-items-center rounded-full bg-black/50 text-white backdrop-blur transition hover:bg-black/70"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+function SectionHeader({
+  title,
+  href,
+  linkLabel,
+  icon: Icon,
+}: {
+  title: string;
+  href: string;
+  linkLabel: string;
+  icon: ComponentType<{ className?: string }>;
+}) {
+  return (
+    <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <h2 className="section-title">{title}</h2>
+      <Link
+        href={href}
+        className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3.5 py-1.5 text-xs font-semibold text-primary transition hover:border-primary/40 hover:bg-primary/10"
+      >
+        <Icon className="h-3.5 w-3.5" />
+        {linkLabel}
+        <ArrowRight className="h-3 w-3 rtl:rotate-180" />
+      </Link>
+    </div>
+  );
+}
+
+function Home() {
+  const { t, lang } = useI18n();
+  const hero = getHeroContent(lang);
+
+  const articles = getPublishedArticles().slice(0, 3);
+  const news = articles.length
+    ? articles.map((a) => ({
+        img: a.coverImage || photoAction1,
+        title: a.title,
+        date: a.publishedAt ? new Date(a.publishedAt).toLocaleDateString() : "",
+        id: a.id,
+      }))
+    : [
+        { img: photoAction1, title: { en: "Junior national team wins gold at Oran international", fr: "L'équipe nationale juniors remporte l'or à Oran", ar: "المنتخب الوطني للأصاغر يحرز الذهب بوهران" }, date: "12 May 2024", id: "" },
+        { img: photoPlayer1, title: { en: "African Championship: Mohamed Abderrahim reaches semi-final", fr: "Championnat d'Afrique : Abderrahim en demi-finale", ar: "بطولة أفريقيا: عبد الرحيم يبلغ نصف النهائي" }, date: "08 May 2024", id: "" },
+        { img: photoCourt2, title: { en: "Senior national team prep camp in Annaba", fr: "Stage de l'équipe nationale senior à Annaba", ar: "تربص المنتخب الوطني للأكابر بعنابة" }, date: "02 May 2024", id: "" },
+      ];
+
+  const cmsEvents = getUpcomingEvents().slice(0, 3);
+  const events = cmsEvents.length
+    ? cmsEvents.map((e) => {
+        const start = new Date(e.startDate);
+        const end = new Date(e.endDate);
+        return {
+          day: String(start.getDate()).padStart(2, "0"),
+          month: start.getMonth(),
+          title: e.title,
+          range: `${start.getDate()} – ${end.getDate()}`,
+          loc: e.location,
+        };
+      })
+    : [
+        { day: "25", month: 3, title: { en: "National Senior Championship 2024", fr: "Championnat National Senior 2024", ar: "البطولة الوطنية للأكابر 2024" }, range: "25 – 28", loc: "Salle OMS, Algiers" },
+        { day: "05", month: 4, title: { en: "Algiers International Tournament", fr: "Tournoi International d'Alger", ar: "الدورة الدولية للجزائر" }, range: "05 – 09", loc: "Coupole, Algiers" },
+        { day: "18", month: 4, title: { en: "African Championship 2024", fr: "Championnat d'Afrique 2024", ar: "بطولة أفريقيا 2024" }, range: "18 – 23", loc: "Cairo, Egypt" },
+      ];
+
+  const cmsTeams = getTeams();
+  const teamKeys = ["seniorMen", "seniorWomen", "juniorBoys", "juniorGirls"] as const;
+  const teamImages = [photoAction3, photoPlayer2, photoAction2, photoPlayer3];
+  const teams = cmsTeams.length
+    ? cmsTeams.slice(0, 4).map((tm, i) => ({ img: tm.image || teamImages[i], key: teamKeys[i] ?? "seniorMen" }))
+    : [
+        { img: photoAction3, key: "seniorMen" as const },
+        { img: photoPlayer2, key: "seniorWomen" as const },
+        { img: photoAction2, key: "juniorBoys" as const },
+        { img: photoPlayer3, key: "juniorGirls" as const },
+      ];
+
+  const mediaGallery = getMedia().filter((m) => m.type === "image" && m.imageUrl).map((m) => m.imageUrl!);
+  const gallery = mediaGallery.length ? mediaGallery : [photoCourt1, photoCourt3, photoAction2, photoPlayer1, photoWide, photoCourt2];
+
+  const sponsors = getSponsors();
+  const matchResults = getMatchResults();
+
+  return (
+    <>
+      {/* HERO */}
+      <section className="relative flex min-h-[min(72vh,640px)] items-center overflow-hidden bg-footer sm:min-h-[min(68vh,600px)] md:min-h-[min(64vh,560px)]">
+        <img src={assetUrl(photoAction1)} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-footer/90 via-footer/75 to-footer/85" />
+        <div className="absolute inset-0 bg-gradient-to-r from-footer/80 to-transparent rtl:bg-gradient-to-l" />
+
+        <div className="relative container-px w-full py-12 sm:py-14 md:py-16">
+          <div className="mx-auto max-w-2xl text-center text-white md:mx-0 md:max-w-xl md:text-start">
+            <img src={assetUrl(logo)} alt="ABF" className="mx-auto h-20 w-auto sm:h-24 md:mx-0 md:h-28" />
+            <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.2em] text-white/70 sm:text-xs">
+              {hero.tagline}
+            </p>
+            <h1 className="mt-3 text-2xl font-bold leading-tight sm:text-3xl md:text-4xl lg:text-[2.5rem]">
+              {hero.title}
+            </h1>
+            <div className="mt-6 flex flex-wrap justify-center gap-2.5 md:justify-start">
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-semibold uppercase tracking-wide shadow-lg shadow-primary/25 transition hover:bg-primary-dark sm:px-6 sm:py-3 sm:text-sm"
+              >
+                {t.hero.cta} <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+              </Link>
+              <Link
+                href="/news"
+                className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 py-2.5 text-xs font-semibold uppercase tracking-wide backdrop-blur transition hover:bg-white/20 sm:px-6 sm:py-3 sm:text-sm"
+              >
+                {t.hero.ctaSecondary}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* NEWS (2/3) + EVENTS (1/3) */}
+      <section className="container-px py-12 md:py-16">
+        <div className="grid gap-8 lg:grid-cols-3 lg:items-start lg:gap-8">
+          <div className="lg:col-span-2">
+            <SectionHeader title={t.sections.news} href="/news" linkLabel={t.sections.newsAll} icon={Newspaper} />
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {news.map((n, i) => (
+                <article
+                  key={i}
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm transition hover:border-primary/25 hover:shadow-md"
+                >
+                  <div className="aspect-[16/10] overflow-hidden bg-muted">
+                    <img
+                      loading="lazy"
+                      src={assetUrl(n.img)}
+                      alt=""
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="flex flex-1 flex-col p-3.5">
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-primary">{n.date}</span>
+                    <h3 className="mt-1 line-clamp-2 text-sm font-semibold leading-snug transition group-hover:text-primary">
+                      {pickLocalized(n.title, lang)}
+                    </h3>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <SectionHeader title={t.sections.events} href="/events" linkLabel={t.sections.eventsAll} icon={Calendar} />
+
+            <div className="space-y-3">
+              {events.map((e, i) => (
+                <Link
+                  key={i}
+                  href="/events"
+                  className="group relative block overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+                >
+                  <div className="absolute inset-y-0 start-0 w-1 bg-primary transition-all group-hover:w-1.5" />
+                  <div className="flex gap-3 p-3.5">
+                    <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <span className="text-lg font-bold leading-none">
+                        <LtrNum value={e.day} />
+                      </span>
+                      <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wider">
+                        {t.months[e.month]}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-sm font-bold leading-snug transition group-hover:text-primary">
+                        {pickLocalized(e.title, lang)}
+                      </h4>
+                      <div className="mt-1.5 space-y-0.5">
+                        <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                          <Calendar className="h-3 w-3 shrink-0 text-primary/70" />
+                          <BidiText text={`${e.range} ${t.months[e.month]}`} />
+                        </p>
+                        <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                          <MapPin className="h-3 w-3 shrink-0 text-primary/70" />
+                          <span className="truncate">{e.loc}</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <BrandedBanner src={brandAbf1} />
+
+      {/* MATCH RESULTS — full width */}
+      <section className="bg-muted/20 py-12 md:py-16">
+        <div className="container-px">
+          <SectionHeader title={t.sections.results} href="/events" linkLabel={t.competitions.seeResults} icon={Trophy} />
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {matchResults.map((r, i) => (
+              <div
+                key={r.id ?? i}
+                className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-5 shadow-sm transition hover:border-primary/25 hover:shadow-md"
+              >
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary/10">
+                    <Trophy className="h-4 w-4 text-primary" />
+                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-primary">
+                    {pickLocalized(r.title, lang)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1 text-end">
+                    <p className="truncate text-sm font-semibold">{pickLocalized(r.player1Name, lang)}</p>
+                  </div>
+                  <div className="shrink-0 rounded-full bg-muted px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    vs
+                  </div>
+                  <div className="min-w-0 flex-1 text-start">
+                    <p className="truncate text-sm font-semibold">{pickLocalized(r.player2Name, lang)}</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-xl bg-primary/5 py-2.5 text-center">
+                  <LtrNum value={r.score} className="font-mono text-sm font-bold tracking-wide text-primary" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <BrandedBanner src={brandAbf2} />
+
+      {/* NATIONAL TEAMS */}
+      <section className="container-px py-14 md:py-16">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <h2 className="section-title">{t.sections.teams}</h2>
+          <Link
+            href="/clubs"
+            className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3.5 py-1.5 text-xs font-semibold text-primary transition hover:border-primary/40 hover:bg-primary/10"
+          >
+            <Users className="h-3.5 w-3.5" />
+            {t.sections.teamsAll}
+            <ArrowRight className="h-3 w-3 rtl:rotate-180" />
+          </Link>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {teams.map((tm, i) => (
+            <Link
+              key={i}
+              href="/clubs"
+              className="group relative aspect-[3/4] overflow-hidden rounded-xl shadow-md"
+            >
+              <img
+                loading="lazy"
+                src={assetUrl(tm.img)}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-footer/90 via-footer/20 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-4">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white backdrop-blur-sm">
+                  {t.teams[tm.key]}
+                  <ArrowRight className="h-3 w-3 opacity-70 transition group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <BrandedBanner src={brandAbf3} />
+
+      {/* PARTNERS */}
+      <section className="border-t border-border bg-muted/40">
+        <div className="container-px py-10 md:py-12">
+          <h2 className="section-title mb-6">{t.sections.partners}</h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6 md:gap-4">
+            {(sponsors.length ? sponsors : [{ id: "1", title: { en: "YONEX", fr: "YONEX", ar: "YONEX" } }, { id: "2", title: { en: "Mobilis", fr: "Mobilis", ar: "Mobilis" } }, { id: "3", title: { en: "Sonatrach", fr: "Sonatrach", ar: "Sonatrach" } }, { id: "4", title: { en: "PEAK", fr: "PEAK", ar: "PEAK" } }, { id: "5", title: { en: "Air Algérie", fr: "Air Algérie", ar: "Air Algérie" } }, { id: "6", title: { en: "BWF", fr: "BWF", ar: "BWF" } }]).map((p) => (
+              <div
+                key={p.id}
+                className="flex h-12 items-center justify-center rounded-xl border border-border/80 bg-background text-xs font-bold text-muted-foreground shadow-sm transition hover:border-primary/30 hover:text-primary md:h-14 md:text-sm"
+              >
+                {pickLocalized(p.title, lang)}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <BrandedBanner src={brandTogether} />
+
+      {/* PHOTO GALLERY — grid with zoom, flush to footer */}
+      <section className="bg-footer pt-10 md:pt-14">
+        <div className="container-px pb-10 md:pb-12">
+          <h2 className="section-title mb-6 text-white">{t.sections.gallery}</h2>
+          <PhotoGallery images={gallery} />
+        </div>
+      </section>
+    </>
+  );
+}
+
+export default Home;
