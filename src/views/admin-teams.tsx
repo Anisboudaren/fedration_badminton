@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ContentManagerPage } from "@/components/admin/ContentManagerPage";
+import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { MultiLangTabs } from "@/components/admin/MultiLangTabs";
 import { useI18n } from "@/i18n/I18nProvider";
 import { emptyLocalizedText, type TeamProfile } from "@/lib/admin/types";
@@ -34,10 +35,12 @@ function TeamsAdminPage() {
       renderFormFields={({ draft, setDraft }) => (
         <>
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">{t.admin.forms.imageUrl}</label>
-              <Input value={draft.image} onChange={(e) => setDraft({ ...draft, image: e.target.value })} />
-            </div>
+            <ImageUploadField
+              label={t.admin.forms.imageUrl}
+              value={draft.image}
+              onChange={(image) => setDraft({ ...draft, image })}
+              folder="teams"
+            />
             <div className="space-y-1.5">
               <label className="text-sm font-medium">{t.admin.forms.category}</label>
               <Select

@@ -11,16 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BidiText, LtrNum } from "@/components/ui/bidi-text";
 import { useI18n } from "@/i18n/I18nProvider";
-import {
-  getArchiveYears,
-  getEvents,
-  getFinishedEvents,
-  getMatchResults,
-  getNationalRankings,
-  getUpcomingEvents,
-  pickLocalized,
-} from "@/lib/data/site-data";
-import type { EventItem } from "@/lib/admin/types";
+import { pickLocalized } from "@/lib/data/site-data";
+import type { ArchiveYear, EventItem, MatchResult, RankingsData } from "@/lib/admin/types";
 const rankingsFile = "/assets/info/CLASSEMENT CHAMPIONNAT NATIONAL SENIORS 2026(1)(1) (1).xls";
 import photo3 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.06.webp";
 
@@ -28,18 +20,32 @@ function pickLabel(obj: { fr: string; ar: string }, lang: string) {
   return lang === "ar" ? obj.ar : obj.fr;
 }
 
-function EventsPage() {
+function EventsPage({
+  initialUpcoming,
+  initialFinished,
+  initialEvents,
+  initialMatchResults,
+  initialRankings,
+  initialArchiveYears,
+}: {
+  initialUpcoming: EventItem[];
+  initialFinished: EventItem[];
+  initialEvents: EventItem[];
+  initialMatchResults: MatchResult[];
+  initialRankings: RankingsData;
+  initialArchiveYears: ArchiveYear[];
+}) {
   const { t, lang } = useI18n();
   const isFr = lang === "fr" || lang === "en";
   const [tab, setTab] = useState("upcoming");
   const [rankingCat, setRankingCat] = useState("teams");
 
-  const upcoming = getUpcomingEvents();
-  const finished = getFinishedEvents();
-  const allEvents = getEvents();
-  const matchResults = getMatchResults();
-  const NATIONAL_RANKINGS = getNationalRankings();
-  const archiveYears = getArchiveYears();
+  const upcoming = initialUpcoming;
+  const finished = initialFinished;
+  const allEvents = initialEvents;
+  const matchResults = initialMatchResults;
+  const NATIONAL_RANKINGS = initialRankings;
+  const archiveYears = initialArchiveYears;
   const activeRanking = NATIONAL_RANKINGS.categories.find((c) => c.id === rankingCat);
 
   return (

@@ -1,14 +1,7 @@
-import photo1 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.00.48.webp";
-import photo2 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.02.webp";
-import photo3 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.06.webp";
-import photo4 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.00.47.webp";
-import photo5 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.05.webp";
-import photo6 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.00.42.webp";
-import photo7 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.03.webp";
-import photo8 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.00.51.webp";
-import photo9 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.01.webp";
-
 type L = { ar: string; fr: string };
+
+/** Placeholder — seed/SSR-safe; bundled URLs are set via admin uploads. */
+const NO_IMG = "";
 
 export const OFFICIALS = [
   { id: "1", name: { ar: "كريم بن عودة", fr: "Karim Ben Aouda" }, role: { ar: "حكم دولي", fr: "Arbitre international" }, region: { ar: "الجزائر", fr: "Alger" } },
@@ -24,18 +17,18 @@ export const OFFICIALS = [
 ];
 
 export const PLAYERS = [
-  { id: "1", name: { ar: "محمد عبد الرحيم", fr: "Mohamed Abderrahim" }, club: { ar: "نادي الجزائر", fr: "Club Alger" }, category: { ar: "أكابر", fr: "Seniors" }, wilaya: { ar: "الجزائر", fr: "Alger" }, ranking: 12, img: photo1 },
-  { id: "2", name: { ar: "آية بن سالم", fr: "Aya Ben Salem" }, club: { ar: "نادي وهران", fr: "Club Oran" }, category: { ar: "إناث", fr: "Dames" }, wilaya: { ar: "وهران", fr: "Oran" }, ranking: 8, img: photo2 },
-  { id: "3", name: { ar: "رياض قاسمي", fr: "Riadh Kacem" }, club: { ar: "نادي قسنطينة", fr: "Club Constantine" }, category: { ar: "أواسط", fr: "Cadets" }, wilaya: { ar: "قسنطينة", fr: "Constantine" }, ranking: 24, img: photo3 },
-  { id: "4", name: { ar: "إيناس حداد", fr: "Inès Haddad" }, club: { ar: "نادي سطيف", fr: "Club Sétif" }, category: { ar: "أصاغر", fr: "Juniors" }, wilaya: { ar: "سطيف", fr: "Sétif" }, ranking: 31, img: photo4 },
-  { id: "5", name: { ar: "أنيس بومدين", fr: "Anis Boumediene" }, club: { ar: "نادي عنابة", fr: "Club Annaba" }, category: { ar: "أكابر", fr: "Seniors" }, wilaya: { ar: "عنابة", fr: "Annaba" }, ranking: 19, img: photo5 },
-  { id: "6", name: { ar: "هاجر مسعودي", fr: "Hajar Messaoudi" }, club: { ar: "نادي البليدة", fr: "Club Blida" }, category: { ar: "إناث", fr: "Dames" }, wilaya: { ar: "البليدة", fr: "Blida" }, ranking: 15, img: photo6 },
-  { id: "7", name: { ar: "ياسين براهimi", fr: "Yacine Brahimi" }, club: { ar: "MC Alger Badminton", fr: "MC Alger Badminton" }, category: { ar: "أكابر", fr: "Seniors" }, wilaya: { ar: "الجزائر", fr: "Alger" }, ranking: 6, img: photo7 },
-  { id: "8", name: { ar: "سلma كhelifi", fr: "Salma Khelifi" }, club: { ar: "USM Oran Shuttle", fr: "USM Oran Shuttle" }, category: { ar: "إناث", fr: "Dames" }, wilaya: { ar: "وهران", fr: "Oran" }, ranking: 11, img: photo8 },
-  { id: "9", name: { ar: "كريم زروقي", fr: "Karim Zerouki" }, club: { ar: "JS Constantine BC", fr: "JS Constantine BC" }, category: { ar: "أواسط", fr: "Cadets" }, wilaya: { ar: "قسنطينة", fr: "Constantine" }, ranking: 28, img: photo9 },
-  { id: "10", name: { ar: "نور الهدى عيسani", fr: "Nour El Houda Issani" }, club: { ar: "Sétif Badminton Académie", fr: "Sétif Badminton Académie" }, category: { ar: "أصاغر", fr: "Juniors" }, wilaya: { ar: "سطيف", fr: "Sétif" }, ranking: 22, img: photo1 },
-  { id: "11", name: { ar: "أمين رحmani", fr: "Amine Rahmani" }, club: { ar: "Tlemcen Shuttle Club", fr: "Tlemcen Shuttle Club" }, category: { ar: "أكابر", fr: "Seniors" }, wilaya: { ar: "تلمسان", fr: "Tlemcen" }, ranking: 17, img: photo2 },
-  { id: "12", name: { ar: "دنيا بوzid", fr: "Donia Bouzid" }, club: { ar: "Annaba Smash Club", fr: "Annaba Smash Club" }, category: { ar: "إناث", fr: "Dames" }, wilaya: { ar: "عنابة", fr: "Annaba" }, ranking: 9, img: photo3 },
+  { id: "1", name: { ar: "محمد عبد الرحيم", fr: "Mohamed Abderrahim" }, club: { ar: "نادي الجزائر", fr: "Club Alger" }, category: { ar: "أكابر", fr: "Seniors" }, wilaya: { ar: "الجزائر", fr: "Alger" }, ranking: 12, img: NO_IMG },
+  { id: "2", name: { ar: "آية بن سالم", fr: "Aya Ben Salem" }, club: { ar: "نادي وهران", fr: "Club Oran" }, category: { ar: "إناث", fr: "Dames" }, wilaya: { ar: "وهران", fr: "Oran" }, ranking: 8, img: NO_IMG },
+  { id: "3", name: { ar: "رياض قاسمي", fr: "Riadh Kacem" }, club: { ar: "نادي قسنطينة", fr: "Club Constantine" }, category: { ar: "أواسط", fr: "Cadets" }, wilaya: { ar: "قسنطينة", fr: "Constantine" }, ranking: 24, img: NO_IMG },
+  { id: "4", name: { ar: "إيناس حداد", fr: "Inès Haddad" }, club: { ar: "نادي سطيف", fr: "Club Sétif" }, category: { ar: "أصاغر", fr: "Juniors" }, wilaya: { ar: "سطيف", fr: "Sétif" }, ranking: 31, img: NO_IMG },
+  { id: "5", name: { ar: "أنيس بومدين", fr: "Anis Boumediene" }, club: { ar: "نادي عنابة", fr: "Club Annaba" }, category: { ar: "أكابر", fr: "Seniors" }, wilaya: { ar: "عنابة", fr: "Annaba" }, ranking: 19, img: NO_IMG },
+  { id: "6", name: { ar: "هاجر مسعودي", fr: "Hajar Messaoudi" }, club: { ar: "نادي البليدة", fr: "Club Blida" }, category: { ar: "إناث", fr: "Dames" }, wilaya: { ar: "البليدة", fr: "Blida" }, ranking: 15, img: NO_IMG },
+  { id: "7", name: { ar: "ياسين براهimi", fr: "Yacine Brahimi" }, club: { ar: "MC Alger Badminton", fr: "MC Alger Badminton" }, category: { ar: "أكابر", fr: "Seniors" }, wilaya: { ar: "الجزائر", fr: "Alger" }, ranking: 6, img: NO_IMG },
+  { id: "8", name: { ar: "سلma كhelifi", fr: "Salma Khelifi" }, club: { ar: "USM Oran Shuttle", fr: "USM Oran Shuttle" }, category: { ar: "إناث", fr: "Dames" }, wilaya: { ar: "وهران", fr: "Oran" }, ranking: 11, img: NO_IMG },
+  { id: "9", name: { ar: "كريم زروقي", fr: "Karim Zerouki" }, club: { ar: "JS Constantine BC", fr: "JS Constantine BC" }, category: { ar: "أواسط", fr: "Cadets" }, wilaya: { ar: "قسنطينة", fr: "Constantine" }, ranking: 28, img: NO_IMG },
+  { id: "10", name: { ar: "نور الهدى عيسani", fr: "Nour El Houda Issani" }, club: { ar: "Sétif Badminton Académie", fr: "Sétif Badminton Académie" }, category: { ar: "أصاغر", fr: "Juniors" }, wilaya: { ar: "سطيف", fr: "Sétif" }, ranking: 22, img: NO_IMG },
+  { id: "11", name: { ar: "أمين رحmani", fr: "Amine Rahmani" }, club: { ar: "Tlemcen Shuttle Club", fr: "Tlemcen Shuttle Club" }, category: { ar: "أكابر", fr: "Seniors" }, wilaya: { ar: "تلمسان", fr: "Tlemcen" }, ranking: 17, img: NO_IMG },
+  { id: "12", name: { ar: "دنيا بوzid", fr: "Donia Bouzid" }, club: { ar: "Annaba Smash Club", fr: "Annaba Smash Club" }, category: { ar: "إناث", fr: "Dames" }, wilaya: { ar: "عنابة", fr: "Annaba" }, ranking: 9, img: NO_IMG },
 ];
 
 export const TOURNAMENTS = [
@@ -82,7 +75,7 @@ export const SPONSORS = [
 
 export const MOCK_ARTICLES = [
   {
-    img: photo1,
+    img: NO_IMG,
     cat: "national" as const,
     date: "2026-03-18",
     title: {
@@ -97,7 +90,7 @@ export const MOCK_ARTICLES = [
     },
   },
   {
-    img: photo2,
+    img: NO_IMG,
     cat: "international" as const,
     date: "2026-03-12",
     title: {
@@ -112,7 +105,7 @@ export const MOCK_ARTICLES = [
     },
   },
   {
-    img: photo3,
+    img: NO_IMG,
     cat: "national" as const,
     date: "2026-03-05",
     title: {
@@ -127,7 +120,7 @@ export const MOCK_ARTICLES = [
     },
   },
   {
-    img: photo4,
+    img: NO_IMG,
     cat: "national" as const,
     date: "2026-02-22",
     title: {
@@ -142,7 +135,7 @@ export const MOCK_ARTICLES = [
     },
   },
   {
-    img: photo5,
+    img: NO_IMG,
     cat: "international" as const,
     date: "2026-02-10",
     title: {
@@ -157,7 +150,7 @@ export const MOCK_ARTICLES = [
     },
   },
   {
-    img: photo6,
+    img: NO_IMG,
     cat: "international" as const,
     date: "2026-01-28",
     title: {
@@ -172,7 +165,7 @@ export const MOCK_ARTICLES = [
     },
   },
   {
-    img: photo7,
+    img: NO_IMG,
     cat: "youth" as const,
     date: "2026-01-15",
     title: {
@@ -187,7 +180,7 @@ export const MOCK_ARTICLES = [
     },
   },
   {
-    img: photo8,
+    img: NO_IMG,
     cat: "youth" as const,
     date: "2025-12-20",
     title: {
@@ -202,7 +195,7 @@ export const MOCK_ARTICLES = [
     },
   },
   {
-    img: photo9,
+    img: NO_IMG,
     cat: "national" as const,
     date: "2025-12-08",
     title: {

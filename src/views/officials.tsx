@@ -9,16 +9,17 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n/I18nProvider";
-import { getOfficials, pickLocalized } from "@/lib/data/site-data";
+import { pickLocalized } from "@/lib/data/site-data";
+import type { Official } from "@/lib/admin/types";
 import photo2 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.02.webp";
 
-function OfficialsPage() {
+function OfficialsPage({ initialOfficials }: { initialOfficials: Official[] }) {
   const { t, lang } = useI18n();
   const isFr = lang === "fr";
   const [role, setRole] = useState("all");
   const [region, setRegion] = useState("all");
 
-  const officials = getOfficials();
+  const officials = initialOfficials;
 
   return (
     <>

@@ -3,6 +3,7 @@
 
 import { Input } from "@/components/ui/input";
 import { ContentManagerPage } from "@/components/admin/ContentManagerPage";
+import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { MultiLangTabs } from "@/components/admin/MultiLangTabs";
 import { useI18n } from "@/i18n/I18nProvider";
 import { emptyLocalizedText, type Official } from "@/lib/admin/types";
@@ -31,10 +32,12 @@ function OfficialsAdminPage() {
       validate={() => null}
       renderFormFields={({ draft, setDraft }) => (
         <>
-          <div className="space-y-1.5 max-w-md">
-            <label className="text-sm font-medium">{t.admin.forms.photoUrl}</label>
-            <Input value={draft.photoUrl ?? ""} onChange={(e) => setDraft({ ...draft, photoUrl: e.target.value })} />
-          </div>
+          <ImageUploadField
+            label={t.admin.forms.photoUrl}
+            value={draft.photoUrl ?? ""}
+            onChange={(photoUrl) => setDraft({ ...draft, photoUrl })}
+            folder="officials"
+          />
           <MultiLangTabs>
             {(lang) => (
               <div className="space-y-3">

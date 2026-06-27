@@ -8,16 +8,17 @@ import { Breadcrumb } from "@/components/layout/Breadcrumb";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/I18nProvider";
-import { getPlayerById, pickLocalized } from "@/lib/data/site-data";
+import { pickLocalized } from "@/lib/data/site-data";
+import type { Player } from "@/lib/admin/types";
 import { WILAYAS } from "@/lib/data/wilayas";
 import photo1 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.00.48.webp";
 
-function PlayerProfilePage() {
+function PlayerProfilePage({ initialPlayer }: { initialPlayer: Player | null }) {
   const params = useParams();
   const id = String(params.id ?? "");
   const { t, lang } = useI18n();
   const isFr = lang === "fr";
-  const player = getPlayerById(id);
+  const player = initialPlayer;
   const wilaya = player ? WILAYAS.find((w) => w.code === player.wilayaCode) : undefined;
   const wilayaLabel = wilaya ? (isFr ? wilaya.fr : wilaya.ar) : player?.wilayaCode ?? "";
 

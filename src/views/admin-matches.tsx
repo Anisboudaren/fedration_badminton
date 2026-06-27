@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ContentManagerPage } from "@/components/admin/ContentManagerPage";
 import { MultiLangTabs } from "@/components/admin/MultiLangTabs";
+import { useQuery } from "@tanstack/react-query";
 import { useI18n } from "@/i18n/I18nProvider";
-import { listItems } from "@/lib/admin/content-store";
+import { listItems } from "@/lib/cms/client";
 import { emptyLocalizedText, type MatchResult } from "@/lib/admin/types";
 
 const emptyMatch = (): MatchResult => ({
@@ -26,7 +27,10 @@ const emptyMatch = (): MatchResult => ({
 
 function MatchesAdminPage() {
   const { t } = useI18n();
-  const events = listItems("events");
+  const { data: events = [] } = useQuery({
+    queryKey: ["cms", "events"],
+    queryFn: () => listItems("events"),
+  });
 
   return (
     <ContentManagerPage<MatchResult>

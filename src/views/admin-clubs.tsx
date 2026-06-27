@@ -4,6 +4,7 @@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ContentManagerPage } from "@/components/admin/ContentManagerPage";
+import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { MultiLangTabs } from "@/components/admin/MultiLangTabs";
 import { useI18n } from "@/i18n/I18nProvider";
 import { WILAYAS } from "@/lib/data/wilayas";
@@ -83,6 +84,12 @@ function ClubsAdminPage() {
               <label className="text-sm font-medium">{t.admin.forms.email}</label>
               <Input value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
             </div>
+            <ImageUploadField
+              label={t.admin.forms.logoUrl}
+              value={draft.logoUrl ?? ""}
+              onChange={(logoUrl) => setDraft({ ...draft, logoUrl })}
+              folder="clubs"
+            />
           </div>
           <MultiLangTabs>
             {(lang) => (

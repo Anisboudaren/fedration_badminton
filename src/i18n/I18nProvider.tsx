@@ -2,29 +2,45 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { dict, LANGS, type Lang, type Dict } from "./translations";
-import { getSiteSettings } from "@/lib/admin/content-store";
+import type { SiteSettings } from "@/lib/admin/types";
+import { defaultSiteSettings } from "@/lib/admin/content-store";
 
-type Ctx = { lang: Lang; setLang: (l: Lang) => void; t: Dict; dir: "ltr" | "rtl" };
+type Ctx = {
+  lang: Lang;
+  setLang: (l: Lang) => void;
+  t: Dict;
+  dir: "ltr" | "rtl";
+  siteSettings: SiteSettings;
+};
+
 const I18nCtx = createContext<Ctx | null>(null);
 
-function getInitialLang(): Lang {
-  if (typeof window === "undefined") return "ar";
+function getInitialLang(settings: SiteSettings): Lang {
+  if (typeof window === "undefined") return settings.defaultLang;
   const saved = localStorage.getItem("abf-lang") as Lang | null;
   if (saved && LANGS.some((l) => l.code === saved)) return saved;
-  return getSiteSettings().defaultLang;
+  return settings.defaultLang;
 }
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>(getInitialLang);
+export function I18nProvider({
+  children,
+  initialSettings,
+}: {
+  children: ReactNode;
+  initialSettings?: SiteSettings;
+}) {
+  const settings = initialSettings ?? defaultSiteSettings();
+  const [siteSettings] = useState<SiteSettings>(settings);
+  const [lang, setLangState] = useState<Lang>(() => getInitialLang(settings));
 
   useEffect(() => {
     const saved = localStorage.getItem("abf-lang") as Lang | null;
     if (saved && LANGS.some((l) => l.code === saved)) {
       setLangState(saved);
     } else {
-      setLangState(getSiteSettings().defaultLang);
+      setLangState(settings.defaultLang);
     }
-  }, []);
+  }, [settings.defaultLang]);
 
   const dir = LANGS.find((l) => l.code === lang)?.dir ?? "ltr";
 
@@ -40,7 +56,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <I18nCtx.Provider value={{ lang, setLang, t: dict[lang], dir }}>
+    <I18nCtx.Provider value={{ lang, setLang, t: dict[lang], dir, siteSettings }}>
       {children}
     </I18nCtx.Provider>
   );

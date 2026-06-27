@@ -8,7 +8,8 @@ import { Breadcrumb } from "@/components/layout/Breadcrumb";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/I18nProvider";
-import { getSponsors, pickLocalized } from "@/lib/data/site-data";
+import { pickLocalized } from "@/lib/data/site-data";
+import type { Sponsor } from "@/lib/admin/types";
 import photoWide from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.01.webp";
 
 const TIER_LABEL = {
@@ -17,11 +18,11 @@ const TIER_LABEL = {
   bronze: { ar: "برونزي", fr: "Bronze" },
 };
 
-function SponsorsPage() {
+function SponsorsPage({ initialSponsors }: { initialSponsors: Sponsor[] }) {
   const { t, lang } = useI18n();
   const isFr = lang === "fr";
 
-  const sponsors = getSponsors();
+  const sponsors = initialSponsors;
 
   return (
     <>

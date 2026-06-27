@@ -45,8 +45,9 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useQuery } from "@tanstack/react-query";
 import { logout, getAuthUserEmail } from "@/lib/admin/auth";
-import { countPendingRequests } from "@/lib/admin/content-store";
+import { fetchCollectionStats } from "@/lib/cms/client";
 import { useI18n } from "@/i18n/I18nProvider";
 import { cn, assetUrl } from "@/lib/utils";
 
@@ -138,10 +139,18 @@ function useNavActive() {
     exact ? pathname === to || pathname === `${to}/` : pathname === to || pathname.startsWith(`${to}/`);
 }
 
+function usePendingRequestCount() {
+  const { data } = useQuery({
+    queryKey: ["cms", "stats"],
+    queryFn: fetchCollectionStats,
+  });
+  return data?.requests ?? 0;
+}
+
 function NavGroups({ compact, tooltipSide }: { compact?: boolean; tooltipSide: "left" | "right" }) {
   const { t } = useI18n();
   const isActive = useNavActive();
-  const pendingCount = countPendingRequests();
+  const pendingCount = usePendingRequestCount();
 
   return (
     <>
@@ -182,7 +191,7 @@ function NavGroups({ compact, tooltipSide }: { compact?: boolean; tooltipSide: "
 function MobileIconRail() {
   const { t } = useI18n();
   const isActive = useNavActive();
-  const pendingCount = countPendingRequests();
+  const pendingCount = usePendingRequestCount();
   const router = useRouter();
   const allLinks = navGroups.flatMap((g) => g.links);
 

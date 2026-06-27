@@ -4,6 +4,7 @@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ContentManagerPage } from "@/components/admin/ContentManagerPage";
+import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { MultiLangTabs } from "@/components/admin/MultiLangTabs";
 import { useI18n } from "@/i18n/I18nProvider";
 import { emptyLocalizedText, type Sponsor } from "@/lib/admin/types";
@@ -47,10 +48,12 @@ function SponsorsAdminPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">{t.admin.forms.logoUrl}</label>
-              <Input value={draft.logoUrl ?? ""} onChange={(e) => setDraft({ ...draft, logoUrl: e.target.value })} />
-            </div>
+            <ImageUploadField
+              label={t.admin.forms.logoUrl}
+              value={draft.logoUrl ?? ""}
+              onChange={(logoUrl) => setDraft({ ...draft, logoUrl })}
+              folder="sponsors"
+            />
             <div className="space-y-1.5">
               <label className="text-sm font-medium">{t.admin.forms.websiteUrl}</label>
               <Input

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ContentManagerPage } from "@/components/admin/ContentManagerPage";
+import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { MultiLangTabs } from "@/components/admin/MultiLangTabs";
 import { useI18n } from "@/i18n/I18nProvider";
 import { WILAYAS } from "@/lib/data/wilayas";
@@ -45,10 +46,12 @@ function PlayersAdminPage() {
       renderFormFields={({ draft, setDraft }) => (
         <>
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">{t.admin.forms.photoUrl}</label>
-              <Input value={draft.photoUrl} onChange={(e) => setDraft({ ...draft, photoUrl: e.target.value })} />
-            </div>
+            <ImageUploadField
+              label={t.admin.forms.photoUrl}
+              value={draft.photoUrl}
+              onChange={(photoUrl) => setDraft({ ...draft, photoUrl })}
+              folder="players"
+            />
             <div className="space-y-1.5">
               <label className="text-sm font-medium">{t.admin.forms.ranking}</label>
               <Input

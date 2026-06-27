@@ -5,15 +5,16 @@ import { useMemo, useState } from "react";
 import { Search, MapPin, Phone, Mail, Users } from "lucide-react";
 import { PageHero } from "@/components/layout/PageHero";
 import { useI18n } from "@/i18n/I18nProvider";
-import { getClubs, pickLocalized } from "@/lib/data/site-data";
+import { pickLocalized } from "@/lib/data/site-data";
+import type { Club } from "@/lib/admin/types";
 import { WILAYAS } from "@/lib/data/wilayas";
 import hero from "@/assets/hero-badminton.jpg";
 
-function ClubsPage() {
+function ClubsPage({ initialClubs }: { initialClubs: Club[] }) {
   const { t, lang } = useI18n();
   const [q, setQ] = useState("");
   const [region, setRegion] = useState<string>("all");
-  const clubs = getClubs();
+  const clubs = initialClubs;
 
   const regions = useMemo(() => {
     const codes = [...new Set(clubs.map((c) => c.wilayaCode))];

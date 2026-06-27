@@ -1,4 +1,3 @@
-import { assetUrl } from "@/lib/utils";
 import {
   ARCHIVE_YEARS,
   MATCH_RESULTS,
@@ -9,15 +8,6 @@ import {
   SPONSORS,
   TOURNAMENTS,
 } from "@/lib/data/mock-site";
-import photoAction3 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.06.webp";
-import photoPlayer2 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.05.webp";
-import photoAction2 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.02.webp";
-import photoPlayer3 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.00.49.webp";
-import photoCourt1 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.00.42.webp";
-import photoCourt2 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.00.51.webp";
-import photoCourt3 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.03.webp";
-import photoPlayer1 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.00.47.webp";
-import photoWide from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.01.webp";
 import { NATIONAL_RANKINGS } from "@/lib/data/national-rankings";
 import type {
   ArchiveYear,
@@ -77,7 +67,7 @@ export function seedArticles(): Article[] {
     title: a.title,
     summary: a.excerpt,
     body: a.excerpt,
-    coverImage: assetUrl(a.img),
+    coverImage: a.img || "",
     publishedAt: `${a.date}T10:00:00`,
     category: a.cat,
     sections: [],
@@ -114,7 +104,7 @@ export function seedPlayers(): Player[] {
       category: toLocalized({ ...p.category, en: p.category.fr }),
       wilayaCode: WILAYA_FROM_NAME[p.wilaya.fr] ?? WILAYA_FROM_NAME[p.wilaya.ar] ?? "16",
       ranking: p.ranking,
-      photoUrl: assetUrl(p.img),
+      photoUrl: p.img || "",
       bio: bio ? toLocalized({ ...bio.bio, en: bio.bio.fr }) : { en: "", fr: "", ar: "" },
       achievements: bio?.achievements.map((a) => toLocalized({ ...a, en: a.fr })) ?? [],
       status: "published" as const,
@@ -188,7 +178,7 @@ export function seedTeams(): TeamProfile[] {
         ar: "المنتخب الوطني للأكابر رجال في البطولات الأفريقية والدولية.",
       },
       category: "senior-men" as const,
-      image: assetUrl(photoAction3),
+      image: "",
     },
     {
       id: "team-senior-women",
@@ -199,7 +189,7 @@ export function seedTeams(): TeamProfile[] {
         ar: "المنتخب الوطني للأكابر سيدات، حامل برونزية ألعاب المتوسط.",
       },
       category: "senior-women" as const,
-      image: assetUrl(photoPlayer2),
+      image: "",
     },
     {
       id: "team-junior-boys",
@@ -210,7 +200,7 @@ export function seedTeams(): TeamProfile[] {
         ar: "مواهب شابة من الأكاديميات الجهوية تمثل الجزائر في بطولات الشباب.",
       },
       category: "junior-boys" as const,
-      image: assetUrl(photoAction2),
+      image: "",
     },
     {
       id: "team-junior-girls",
@@ -221,7 +211,7 @@ export function seedTeams(): TeamProfile[] {
         ar: "المنتخب الوطني للأصاغر إناث، جيل المستقبل للريشة الطائرة.",
       },
       category: "junior-girls" as const,
-      image: assetUrl(photoPlayer3),
+      image: "",
     },
   ];
   return teams.map((t) => ({
@@ -234,8 +224,7 @@ export function seedTeams(): TeamProfile[] {
 
 export function seedMedia(): MediaItem[] {
   const ts = now();
-  const images = [photoCourt1, photoCourt3, photoAction2, photoPlayer1, photoWide, photoCourt2, photoAction3, photoPlayer2];
-  return images.map((img, i) => ({
+  return Array.from({ length: 8 }, (_, i) => ({
     id: `seed-media-${i + 1}`,
     title: {
       en: `Gallery photo ${i + 1}`,
@@ -243,7 +232,7 @@ export function seedMedia(): MediaItem[] {
       ar: `صورة المعرض ${i + 1}`,
     },
     type: "image" as const,
-    imageUrl: assetUrl(img),
+    imageUrl: "",
     status: "published" as const,
     createdAt: ts,
     updatedAt: ts,

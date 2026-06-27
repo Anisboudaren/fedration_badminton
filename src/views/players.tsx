@@ -9,15 +9,16 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n/I18nProvider";
-import { getPlayers, getPlayerById, pickLocalized } from "@/lib/data/site-data";
+import { pickLocalized } from "@/lib/data/site-data";
+import type { Player } from "@/lib/admin/types";
 import { WILAYAS } from "@/lib/data/wilayas";
 import photo1 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.00.48.webp";
 
-function PlayersPage() {
+function PlayersPage({ initialPlayers }: { initialPlayers: Player[] }) {
   const { t, lang } = useI18n();
   const isFr = lang === "fr";
 
-  const players = getPlayers();
+  const players = initialPlayers;
 
   return (
     <>

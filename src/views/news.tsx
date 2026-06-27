@@ -4,15 +4,16 @@ import Link from "next/link";
 import { useState } from "react";
 import { PageHero } from "@/components/layout/PageHero";
 import { useI18n } from "@/i18n/I18nProvider";
-import { getPublishedArticles, pickLocalized } from "@/lib/data/site-data";
+import { pickLocalized } from "@/lib/data/site-data";
+import type { Article } from "@/lib/admin/types";
 import { assetUrl } from "@/lib/utils";
 import hero from "@/assets/hero-badminton.jpg";
 import news1 from "@/assets/hero-badminton.jpg";
 
-function NewsPage() {
+function NewsPage({ initialArticles }: { initialArticles: Article[] }) {
   const { t, lang } = useI18n();
   const [filter, setFilter] = useState<"all" | "national" | "international" | "youth">("all");
-  const articles = getPublishedArticles();
+  const articles = initialArticles;
   const filtered = filter === "all" ? articles : articles.filter((a) => a.category === filter);
   const tabs = [
     { k: "all" as const, l: t.news.all },

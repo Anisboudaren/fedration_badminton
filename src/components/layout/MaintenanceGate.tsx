@@ -6,18 +6,18 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import logo from "@/assets/main logo.png";
 import { useI18n } from "@/i18n/I18nProvider";
-import { isMaintenanceMode, readSiteSettings, pickLocalized } from "@/lib/data/site-data";
+import { pickLocalized } from "@/lib/data/site-data";
 
 export function MaintenanceGate({ children }: { children: ReactNode }) {
-  const { t, lang } = useI18n();
+  const { t, lang, siteSettings } = useI18n();
   const pathname = usePathname();
   const isAdmin = pathname.startsWith("/admin");
-  const maintenance = isMaintenanceMode();
+  const maintenance =
+    process.env.NEXT_PUBLIC_MAINTENANCE === "true" || siteSettings.maintenanceMode;
 
   if (!maintenance || isAdmin) return <>{children}</>;
 
-  const settings = readSiteSettings();
-  const message = pickLocalized(settings.maintenanceMessage, lang) || t.maintenance.body;
+  const message = pickLocalized(siteSettings.maintenanceMessage, lang) || t.maintenance.body;
 
   return (
     <div className="relative flex min-h-[70vh] items-center justify-center px-4 py-16">

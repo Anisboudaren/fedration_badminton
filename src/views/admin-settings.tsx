@@ -1,7 +1,8 @@
 "use client";
 
-
 import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -9,20 +10,46 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { MultiLangTabs } from "@/components/admin/MultiLangTabs";
-import { getSiteSettings, saveSiteSettings } from "@/lib/admin/content-store";
 import type { SiteSettings } from "@/lib/admin/types";
 import { LANGS, type Lang } from "@/i18n/translations";
 import { useI18n } from "@/i18n/I18nProvider";
+import { fetchSiteSettings, saveSiteSettingsApi } from "@/lib/cms/client";
 import { toast } from "sonner";
 
 function SettingsAdminPage() {
   const { t } = useI18n();
-  const [settings, setSettings] = useState<SiteSettings>(() => getSiteSettings());
+  const queryClient = useQueryClient();
+
+  const { data: loaded, isLoading } = useQuery({
+    queryKey: ["cms", "settings"],
+    queryFn: fetchSiteSettings,
+  });
+
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const draft = settings ?? loaded;
+
+  const saveMutation = useMutation({
+    mutationFn: saveSiteSettingsApi,
+    onSuccess: (data) => {
+      setSettings(data);
+      queryClient.invalidateQueries({ queryKey: ["cms", "settings"] });
+      toast.success(t.admin.settings.saved);
+    },
+    onError: () => toast.error("Save failed"),
+  });
 
   const onSave = () => {
-    saveSiteSettings(settings);
-    toast.success(t.admin.settings.saved);
+    if (!draft) return;
+    saveMutation.mutate(draft);
   };
+
+  if (isLoading || !draft) {
+    return (
+      <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
+        <Loader2 className="h-5 w-5 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -31,15 +58,11 @@ function SettingsAdminPage() {
           <h1 className="text-2xl font-bold">{t.admin.pages.settings.title}</h1>
           <p className="text-sm text-muted-foreground mt-1">{t.admin.pages.settings.description}</p>
         </div>
-        <Button onClick={onSave}>{t.admin.settings.save}</Button>
+        <Button onClick={onSave} disabled={saveMutation.isPending}>
+          {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          {t.admin.settings.save}
+        </Button>
       </div>
-
-      <Card className="border-amber-500/30 bg-amber-500/5">
-        <CardContent className="py-4 text-sm text-muted-foreground space-y-1">
-          <p>{t.admin.settings.localStorageNote}</p>
-          <p>{t.admin.settings.envNote}</p>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>
@@ -52,9 +75,9 @@ function SettingsAdminPage() {
                 <div className="space-y-1.5">
                   <Label>{t.admin.settings.heroTitle}</Label>
                   <Textarea
-                    value={settings.heroTitle[lang]}
+                    value={draft.heroTitle[lang]}
                     onChange={(e) =>
-                      setSettings({ ...settings, heroTitle: { ...settings.heroTitle, [lang]: e.target.value } })
+                      setSettings({ ...draft, heroTitle: { ...draft.heroTitle, [lang]: e.target.value } })
                     }
                     rows={2}
                   />
@@ -62,9 +85,9 @@ function SettingsAdminPage() {
                 <div className="space-y-1.5">
                   <Label>{t.admin.settings.heroTagline}</Label>
                   <Textarea
-                    value={settings.heroTagline[lang]}
+                    value={draft.heroTagline[lang]}
                     onChange={(e) =>
-                      setSettings({ ...settings, heroTagline: { ...settings.heroTagline, [lang]: e.target.value } })
+                      setSettings({ ...draft, heroTagline: { ...draft.heroTagline, [lang]: e.target.value } })
                     }
                     rows={2}
                   />
@@ -72,11 +95,11 @@ function SettingsAdminPage() {
                 <div className="space-y-1.5">
                   <Label>{t.admin.settings.maintenanceMessage}</Label>
                   <Textarea
-                    value={settings.maintenanceMessage[lang]}
+                    value={draft.maintenanceMessage[lang]}
                     onChange={(e) =>
                       setSettings({
-                        ...settings,
-                        maintenanceMessage: { ...settings.maintenanceMessage, [lang]: e.target.value },
+                        ...draft,
+                        maintenanceMessage: { ...draft.maintenanceMessage, [lang]: e.target.value },
                       })
                     }
                     rows={2}
@@ -90,8 +113,8 @@ function SettingsAdminPage() {
             <div className="space-y-1.5">
               <Label>{t.admin.settings.defaultLang}</Label>
               <Select
-                value={settings.defaultLang}
-                onValueChange={(v) => setSettings({ ...settings, defaultLang: v as Lang })}
+                value={draft.defaultLang}
+                onValueChange={(v) => setSettings({ ...draft, defaultLang: v as Lang })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -110,8 +133,8 @@ function SettingsAdminPage() {
                 <Label>{t.admin.settings.maintenanceMode}</Label>
               </div>
               <Switch
-                checked={settings.maintenanceMode}
-                onCheckedChange={(checked) => setSettings({ ...settings, maintenanceMode: checked })}
+                checked={draft.maintenanceMode}
+                onCheckedChange={(checked) => setSettings({ ...draft, maintenanceMode: checked })}
               />
             </div>
           </div>

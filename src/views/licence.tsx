@@ -28,11 +28,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useI18n } from "@/i18n/I18nProvider";
 import { WILAYAS } from "@/lib/data/wilayas";
-import { saveLicenceRequest } from "@/lib/admin/content-store";
+import { createId } from "@/lib/admin/content-store";
+import { submitLicenceRequest, uploadImage } from "@/lib/cms/client";
 import { cn, assetUrl } from "@/lib/utils";
+import { toast } from "sonner";
 
 type L = { en: string; fr: string; ar: string };
 const t3 = (o: L, lang: string) => (lang === "ar" ? o.ar : lang === "fr" ? o.fr : o.en);
+
+const hasFiles = (files: FileList | undefined) => Boolean(files?.length && files.length > 0);
 
 const COPY = {
   title: { en: "Licence application", fr: "Demande de licence", ar: "طلب رخصة" },
@@ -71,6 +75,12 @@ const COPY = {
     fr: "Votre demande a été enregistrée. Vous recevrez un e-mail de confirmation après examen par la fédération.",
     ar: "تم تسجيل طلبكم. ستصلكم رسالة تأكيد بعد مراجعة الاتحادية.",
   },
+  submitError: {
+    en: "Could not submit. Check your documents and try again.",
+    fr: "Envoi impossible. Vérifiez vos documents et réessayez.",
+    ar: "تعذّر الإرسال. تحققوا من الوثائق وحاولوا مجدداً.",
+  },
+  submitting: { en: "Submitting…", fr: "Envoi en cours…", ar: "جاري الإرسال…" },
   newRequest: { en: "New application", fr: "Nouvelle demande", ar: "طلب جديد" },
   reviewNote: {
     en: "Check your details before sending. You can go back to edit any step.",
@@ -126,6 +136,17 @@ const schema = z.object({
   antiDoping: z.custom<FileList | undefined>(),
   idDoc: z.custom<FileList | undefined>(),
   diploma: z.custom<FileList | undefined>(),
+}).superRefine((data, ctx) => {
+  const requireFile = (field: keyof FormValues, when = true) => {
+    if (!when) return;
+    if (!hasFiles(data[field] as FileList | undefined)) {
+      ctx.addIssue({ code: "custom", message: "required", path: [field] });
+    }
+  };
+  requireFile("photo");
+  requireFile("birthCert");
+  requireFile("medical");
+  requireFile("diploma", data.licenceType === "coach");
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -141,6 +162,8 @@ function LicencePage() {
   const { lang } = useI18n();
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const stepTopRef = useRef<HTMLDivElement>(null);
   const skipInitialScroll = useRef(true);
 
@@ -160,6 +183,7 @@ function LicencePage() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
+    shouldUnregister: false,
     defaultValues: {
       licenceType: "athlete",
       gender: "male",
@@ -188,38 +212,62 @@ function LicencePage() {
   const goNext = async () => {
     const fields = STEP_FIELDS[step];
     const valid = fields.length === 0 || (await trigger(fields));
-    if (valid) setStep((s) => Math.min(s + 1, COPY.steps.length - 1));
+    if (!valid) return;
+    setSubmitError(null);
+    setStep((s) => Math.min(s + 1, COPY.steps.length - 1));
   };
 
-  const goBack = () => setStep((s) => Math.max(s - 1, 0));
+  const goBack = () => {
+    setSubmitError(null);
+    setStep((s) => Math.max(s - 1, 0));
+  };
 
-  const onSubmit = (values: FormValues) => {
-    const fileName = (files?: FileList) => (files?.[0]?.name ? files[0].name : undefined);
-    saveLicenceRequest({
-      licenceType: values.licenceType,
-      fullName: values.fullName,
-      birthDate: values.birthDate,
-      gender: values.gender,
-      wilaya: values.wilaya,
-      club: values.club,
-      category: values.category,
-      phone: values.phone,
-      email: values.email,
-      documents: {
-        photo: fileName(values.photo),
-        birthCert: fileName(values.birthCert),
-        medical: fileName(values.medical),
-        antiDoping: fileName(values.antiDoping),
-        idDoc: fileName(values.idDoc),
-        diploma: fileName(values.diploma),
-      },
-      status: "pending",
-      adminNotes: "",
-      submittedAt: new Date().toISOString(),
-    });
-    setSubmitted(true);
-    setStep(0);
-    form.reset();
+  const onSubmit = async (values: FormValues) => {
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    const requestId = createId();
+    const uploadDoc = async (files: FileList | undefined, docType: string) => {
+      if (!files?.[0]) return undefined;
+      return uploadImage(files[0], `licence-requests/${requestId}/${docType}`);
+    };
+
+    try {
+      const documents = {
+        photo: await uploadDoc(values.photo, "photo"),
+        birthCert: await uploadDoc(values.birthCert, "birth-cert"),
+        medical: await uploadDoc(values.medical, "medical"),
+        antiDoping: await uploadDoc(values.antiDoping, "anti-doping"),
+        idDoc: await uploadDoc(values.idDoc, "id"),
+        diploma: await uploadDoc(values.diploma, "diploma"),
+      };
+
+      await submitLicenceRequest({
+        licenceType: values.licenceType,
+        fullName: values.fullName,
+        birthDate: values.birthDate,
+        gender: values.gender,
+        wilaya: values.wilaya,
+        club: values.club,
+        category: values.category,
+        phone: values.phone,
+        email: values.email,
+        documents,
+        status: "pending",
+        adminNotes: "",
+        submittedAt: new Date().toISOString(),
+      });
+      setSubmitted(true);
+      setStep(0);
+      form.reset();
+      toast.success(t3(COPY.successTitle, lang));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t3(COPY.submitError, lang);
+      setSubmitError(message);
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -290,8 +338,11 @@ function LicencePage() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (step < COPY.steps.length - 1) goNext();
-            else form.handleSubmit(onSubmit)();
+            if (step < COPY.steps.length - 1) {
+              void goNext();
+            } else {
+              void form.handleSubmit(onSubmit)(e);
+            }
           }}
         >
           <Card className="shadow-lg">
@@ -473,6 +524,7 @@ function LicencePage() {
                       name="photo"
                       required
                       register={register}
+                      error={err("photo")}
                       icon={User}
                     />
                     <UploadField
@@ -480,6 +532,7 @@ function LicencePage() {
                       name="birthCert"
                       required
                       register={register}
+                      error={err("birthCert")}
                       icon={FileText}
                     />
                     <UploadField
@@ -487,18 +540,21 @@ function LicencePage() {
                       name="medical"
                       required
                       register={register}
+                      error={err("medical")}
                       icon={Stethoscope}
                     />
                     <UploadField
                       label={t3(COPY.antiDoping, lang)}
                       name="antiDoping"
                       register={register}
+                      error={err("antiDoping")}
                       icon={FileText}
                     />
                     <UploadField
                       label={t3(COPY.idDoc, lang)}
                       name="idDoc"
                       register={register}
+                      error={err("idDoc")}
                       icon={IdCard}
                     />
                     {licenceType === "coach" && (
@@ -507,6 +563,7 @@ function LicencePage() {
                         name="diploma"
                         required
                         register={register}
+                        error={err("diploma")}
                         icon={FileText}
                       />
                     )}
@@ -524,23 +581,30 @@ function LicencePage() {
             </CardContent>
           </Card>
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-col gap-3">
+            {submitError ? (
+              <p className="text-sm text-destructive text-center">{submitError}</p>
+            ) : null}
+            <div className="flex flex-wrap gap-3">
             {step > 0 && (
-              <Button type="button" variant="outline" onClick={goBack} className="gap-2">
+              <Button type="button" variant="outline" onClick={goBack} className="gap-2" disabled={isSubmitting}>
                 <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
                 {t3(COPY.back, lang)}
               </Button>
             )}
-            <Button type="submit" className="ms-auto min-w-[140px] gap-2">
+            <Button type="submit" className="ms-auto min-w-[140px] gap-2" disabled={isSubmitting}>
               {step < COPY.steps.length - 1 ? (
                 <>
                   {t3(COPY.next, lang)}
                   <ArrowRight className="h-4 w-4 rtl:rotate-180" />
                 </>
+              ) : isSubmitting ? (
+                t3(COPY.submitting, lang)
               ) : (
                 t3(COPY.submit, lang)
               )}
             </Button>
+            </div>
           </div>
         </form>
       </div>
@@ -571,12 +635,14 @@ function UploadField({
   name,
   register,
   required,
+  error,
   icon: Icon,
 }: {
   label: string;
   name: keyof FormValues;
   register: ReturnType<typeof useForm<FormValues>>["register"];
   required?: boolean;
+  error?: string | null;
   icon: React.ComponentType<{ className?: string }>;
 }) {
   const [fileName, setFileName] = useState<string | null>(null);
@@ -620,6 +686,7 @@ function UploadField({
           }}
         />
       </label>
+      {error ? <p className="text-xs text-destructive">{error}</p> : null}
       {fileName ? (
         <button
           type="button"

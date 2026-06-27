@@ -16,18 +16,15 @@ import {
   ArrowUpRight,
   Clock,
   Sparkles,
+  Loader2,
   type LucideIcon,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  countPendingRequests,
-  getRecentActivity,
-  listItems,
-  type CollectionKey,
-} from "@/lib/admin/content-store";
+import { type CollectionKey } from "@/lib/admin/content-store";
+import { fetchCollectionStats, fetchRecentActivity } from "@/lib/cms/client";
 import { useI18n } from "@/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
@@ -87,17 +84,27 @@ function StatCard({
 
 function AdminDashboardPage() {
   const { t } = useI18n();
-  const pending = countPendingRequests();
-  const activity = useMemo(() => getRecentActivity(8), []);
 
-  const stats = statCollections.map(({ key, icon, to, navKey, accent, iconBg }) => ({
+  const { data: stats = {}, isLoading: statsLoading } = useQuery({
+    queryKey: ["cms", "stats"],
+    queryFn: fetchCollectionStats,
+  });
+
+  const { data: activity = [], isLoading: activityLoading } = useQuery({
+    queryKey: ["cms", "activity"],
+    queryFn: () => fetchRecentActivity(8),
+  });
+
+  const pending = stats.requests ?? 0;
+
+  const statItems = statCollections.map(({ key, icon, to, navKey, accent, iconBg }) => ({
     key,
     icon,
     to,
     accent,
     iconBg,
     label: t.admin.nav[navKey as keyof typeof t.admin.nav],
-    count: key === "requests" ? countPendingRequests() : listItems(key as CollectionKey).length,
+    count: key === "requests" ? pending : (stats[key] ?? 0),
   }));
 
   return (
@@ -148,19 +155,25 @@ function AdminDashboardPage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-        {stats.map((stat) => (
-          <StatCard
-            key={stat.key}
-            label={stat.label}
-            count={stat.count}
-            icon={stat.icon}
-            to={stat.to}
-            accent={stat.accent}
-            iconBg={stat.iconBg}
-          />
-        ))}
-      </div>
+      {statsLoading ? (
+        <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+          {statItems.map((stat) => (
+            <StatCard
+              key={stat.key}
+              label={stat.label}
+              count={stat.count}
+              icon={stat.icon}
+              to={stat.to}
+              accent={stat.accent}
+              iconBg={stat.iconBg}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="grid gap-5 lg:grid-cols-5 lg:gap-6">
         <Card className="border-border/60 shadow-sm lg:col-span-2">
@@ -198,7 +211,9 @@ function AdminDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {activity.length === 0 ? (
+            {activityLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            ) : activity.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t.admin.dashboard.noActivity}</p>
             ) : (
               <ul className="divide-y divide-border/60">

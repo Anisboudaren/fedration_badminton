@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ContentManagerPage } from "@/components/admin/ContentManagerPage";
+import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { MultiLangTabs } from "@/components/admin/MultiLangTabs";
 import { useI18n } from "@/i18n/I18nProvider";
 import { createId, slugify } from "@/lib/admin/content-store";
@@ -57,11 +58,11 @@ function ArticlesAdminPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">{t.admin.forms.coverImage}</label>
-              <Input
+              <ImageUploadField
+                label={t.admin.forms.coverImage}
                 value={draft.coverImage}
-                onChange={(e) => setDraft({ ...draft, coverImage: e.target.value })}
-                placeholder="https://..."
+                onChange={(coverImage) => setDraft({ ...draft, coverImage })}
+                folder="articles"
               />
             </div>
             <div className="space-y-1.5">
@@ -194,18 +195,18 @@ function ArticlesAdminPage() {
 
                   <div className="mt-3 grid gap-3 md:grid-cols-2">
                     <div className="space-y-1.5">
-                      <label className="text-sm font-medium">{t.admin.forms.sectionImageUrl}</label>
-                      <Input
+                      <ImageUploadField
+                        label={t.admin.forms.sectionImageUrl}
                         value={section.imageUrl ?? ""}
-                        onChange={(e) =>
+                        onChange={(imageUrl) =>
                           setDraft({
                             ...draft,
                             sections: draft.sections.map((x) =>
-                              x.id === section.id ? { ...x, imageUrl: e.target.value } : x,
+                              x.id === section.id ? { ...x, imageUrl } : x,
                             ),
                           })
                         }
-                        placeholder="https://..."
+                        folder="articles/sections"
                       />
                     </div>
                     <div className="space-y-1.5">

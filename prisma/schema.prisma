@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ContentStatus {
+  draft
+  published
+}
+
+enum ArticleCategory {
+  national
+  international
+  youth
+}
+
+enum EventStatus {
+  upcoming
+  finished
+}
+
+enum TeamCategory {
+  senior_men
+  senior_women
+  junior_boys
+  junior_girls
+}
+
+enum MediaType {
+  image
+  youtube
+}
+
+enum SponsorTier {
+  gold
+  silver
+  bronze
+}
+
+enum LicenceType {
+  athlete
+  coach
+}
+
+enum RequestStatus {
+  pending
+  approved
+  rejected
+}
+
+enum Gender {
+  male
+  female
+}
+
+model Article {
+  id          String          @id @default(cuid())
+  slug        String          @unique
+  title       Json
+  summary     Json
+  body        Json
+  coverImage  String          @default("")
+  publishedAt DateTime?
+  category    ArticleCategory @default(national)
+  status      ContentStatus   @default(draft)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  sections    ArticleSection[]
+
+  @@index([status, publishedAt])
+}
+
+model ArticleSection {
+  id         String  @id @default(cuid())
+  articleId  String
+  article    Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  title      Json
+  body       Json
+  imageUrl   String?
+  imageTitle Json
+  videoUrl   String?
+  sortOrder  Int     @default(0)
+}
+
+model Event {
+  id          String        @id
+  title       Json
+  description Json
+  location    String
+  startDate   DateTime
+  endDate     DateTime
+  eventStatus EventStatus   @default(upcoming)
+  status      ContentStatus @default(draft)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  matches     MatchResult[]
+
+  @@index([eventStatus, startDate])
+}
+
+model TeamProfile {
+  id          String        @id @default(cuid())
+  title       Json
+  description Json
+  category    TeamCategory
+  image       String        @default("")
+  status      ContentStatus @default(draft)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model MediaItem {
+  id              String        @id @default(cuid())
+  title           Json
+  type            MediaType
+  imageUrl        String?
+  youtubeUrl      String?
+  youtubeVideoId  String?
+  status          ContentStatus @default(draft)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Player {
+  id           String        @id
+  title        Json
+  club         Json
+  category     Json
+  wilayaCode   String
+  ranking      Int           @default(0)
+  photoUrl     String        @default("")
+  bio          Json
+  achievements Json          @default("[]")
+  status       ContentStatus @default(draft)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([ranking])
+}
+
+model Official {
+  id                 String        @id
+  title              Json
+  role               Json
+  region             Json
+  photoUrl           String?
+  certificationLevel String?
+  status             ContentStatus @default(draft)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+}
+
+model MatchResult {
+  id           String        @id @default(cuid())
+  title        Json
+  eventId      String
+  event        Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  category     String        @default("ms")
+  player1Name  Json
+  player2Name  Json
+  score        String
+  stage        String?
+  playedAt     DateTime?
+  status       ContentStatus @default(draft)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([eventId])
+}
+
+model Sponsor {
+  id         String        @id
+  title      Json
+  tier       SponsorTier   @default(bronze)
+  logoUrl    String?
+  websiteUrl String?
+  status     ContentStatus @default(draft)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+model Club {
+  id         String        @id @default(cuid())
+  title      Json
+  wilayaCode String
+  city       String
+  members    Int           @default(0)
+  founded    Int
+  phone      String        @default("")
+  email      String        @default("")
+  logoUrl    String?
+  status     ContentStatus @default(draft)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([wilayaCode])
+}
+
+model ArchiveYear {
+  id        String        @id @default(cuid())
+  year      Int           @unique
+  count     Int           @default(0)
+  status    ContentStatus @default(published)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model LicenceRequest {
+  id          String        @id @default(cuid())
+  licenceType LicenceType
+  fullName    String
+  birthDate   String
+  gender      Gender
+  wilaya      String
+  club        String
+  category    String
+  phone       String
+  email       String
+  documents   Json          @default("{}")
+  status      RequestStatus @default(pending)
+  adminNotes  String        @default("")
+  submittedAt DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status, submittedAt])
+}
+
+model SiteSettings {
+  id                  String   @id @default("default")
+  heroTitle           Json
+  heroTagline         Json
+  defaultLang         String   @default("ar")
+  maintenanceMode     Boolean  @default(false)
+  maintenanceMessage  Json
+  updatedAt           DateTime @updatedAt
+}
+
+model RankingsSnapshot {
+  id        String   @id @default("default")
+  data      Json
+  updatedAt DateTime @updatedAt
+}

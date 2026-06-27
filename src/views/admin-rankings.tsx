@@ -2,50 +2,84 @@
 
 
 import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getRankings, saveRankings } from "@/lib/admin/content-store";
 import type { RankingsCategory, RankingsData, RankingsPlayer, RankingsTeam } from "@/lib/admin/types";
+import { fetchRankings, saveRankingsApi } from "@/lib/cms/client";
 import { useI18n } from "@/i18n/I18nProvider";
 import { toast } from "sonner";
 
 function RankingsAdminPage() {
   const { t } = useI18n();
-  const [data, setData] = useState<RankingsData>(() => getRankings());
+  const queryClient = useQueryClient();
+
+  const { data: loaded, isLoading } = useQuery({
+    queryKey: ["cms", "rankings"],
+    queryFn: fetchRankings,
+  });
+
+  const [data, setData] = useState<RankingsData | null>(null);
+  const draft = data ?? loaded;
 
   const updatePlayer = (catId: string, index: number, field: keyof RankingsPlayer, value: string | number) => {
-    setData((prev) => ({
-      ...prev,
-      categories: prev.categories.map((cat) => {
-        if (cat.id !== catId || cat.id === "teams") return cat;
-        const players = [...cat.players];
-        players[index] = { ...players[index], [field]: value };
-        return { ...cat, players };
-      }),
-    }));
+    setData((prev) => {
+      const base = prev ?? loaded!;
+      return {
+        ...base,
+        categories: base.categories.map((cat) => {
+          if (cat.id !== catId || cat.id === "teams") return cat;
+          const players = [...cat.players];
+          players[index] = { ...players[index], [field]: value };
+          return { ...cat, players };
+        }),
+      };
+    });
   };
 
   const updateTeam = (index: number, field: keyof RankingsTeam, value: string | number) => {
-    setData((prev) => ({
-      ...prev,
-      categories: prev.categories.map((cat) => {
-        if (cat.id !== "teams") return cat;
-        const teams = [...cat.teams];
-        teams[index] = { ...teams[index], [field]: value };
-        return { ...cat, teams };
-      }),
-    }));
+    setData((prev) => {
+      const base = prev ?? loaded!;
+      return {
+        ...base,
+        categories: base.categories.map((cat) => {
+          if (cat.id !== "teams") return cat;
+          const teams = [...cat.teams];
+          teams[index] = { ...teams[index], [field]: value };
+          return { ...cat, teams };
+        }),
+      };
+    });
   };
+
+  const saveMutation = useMutation({
+    mutationFn: saveRankingsApi,
+    onSuccess: (saved) => {
+      setData(saved);
+      queryClient.invalidateQueries({ queryKey: ["cms", "rankings"] });
+      toast.success(t.admin.settings.saved);
+    },
+    onError: () => toast.error("Save failed"),
+  });
 
   const onSave = () => {
-    saveRankings(data);
-    toast.success(t.admin.settings.saved);
+    if (!draft) return;
+    saveMutation.mutate(draft);
   };
 
-  const playerCategories = data.categories.filter((c): c is Extract<RankingsCategory, { players: RankingsPlayer[] }> => c.id !== "teams");
-  const teamCategory = data.categories.find((c) => c.id === "teams");
+  if (isLoading || !draft) {
+    return (
+      <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
+        <Loader2 className="h-5 w-5 animate-spin" />
+      </div>
+    );
+  }
+
+  const playerCategories = draft.categories.filter((c): c is Extract<RankingsCategory, { players: RankingsPlayer[] }> => c.id !== "teams");
+  const teamCategory = draft.categories.find((c) => c.id === "teams");
 
   return (
     <div className="space-y-6">
@@ -54,12 +88,15 @@ function RankingsAdminPage() {
           <h1 className="text-2xl font-bold">{t.admin.pages.rankings.title}</h1>
           <p className="text-sm text-muted-foreground mt-1">{t.admin.pages.rankings.description}</p>
         </div>
-        <Button onClick={onSave}>{t.admin.settings.save}</Button>
+        <Button onClick={onSave} disabled={saveMutation.isPending}>
+          {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          {t.admin.settings.save}
+        </Button>
       </div>
 
       <Tabs defaultValue={playerCategories[0]?.id ?? "ws"}>
         <TabsList className="flex flex-wrap h-auto">
-          {data.categories.map((cat) => (
+          {draft.categories.map((cat) => (
             <TabsTrigger key={cat.id} value={cat.id}>
               {cat.fr}
             </TabsTrigger>

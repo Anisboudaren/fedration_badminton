@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { SiteShell } from "@/components/site-shell";
+import { readSiteSettings } from "@/lib/data/site-data.server";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: {
@@ -25,7 +28,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const settings = await readSiteSettings();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -37,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-svh antialiased">
-        <Providers>
+        <Providers initialSettings={settings}>
           <SiteShell>{children}</SiteShell>
         </Providers>
       </body>

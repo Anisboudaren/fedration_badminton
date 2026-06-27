@@ -4,6 +4,7 @@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ContentManagerPage } from "@/components/admin/ContentManagerPage";
+import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { MultiLangTabs } from "@/components/admin/MultiLangTabs";
 import { YouTubeInput, extractYouTubeVideoId } from "@/components/admin/forms/YouTubeInput";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -65,14 +66,12 @@ function MediaAdminPage() {
           </div>
 
           {draft.type === "image" ? (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">{t.admin.forms.imageUrl}</label>
-              <Input
-                value={draft.imageUrl ?? ""}
-                onChange={(e) => setDraft({ ...draft, imageUrl: e.target.value })}
-                placeholder="https://..."
-              />
-            </div>
+            <ImageUploadField
+              label={t.admin.forms.imageUrl}
+              value={draft.imageUrl ?? ""}
+              onChange={(imageUrl) => setDraft({ ...draft, imageUrl })}
+              folder="media"
+            />
           ) : (
             <YouTubeInput
               value={draft.youtubeUrl ?? ""}
