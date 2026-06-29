@@ -1,6 +1,7 @@
 import "dotenv/config";
 import prisma from "../src/lib/prisma";
 import { defaultSiteSettings } from "../src/lib/admin/content-store";
+import { contactInfoToJson } from "../src/lib/data/contact-info";
 import {
   seedArchiveYears,
   seedArticles,
@@ -15,6 +16,8 @@ import {
   seedTeams,
 } from "../src/lib/admin/seed-data";
 import { fromLocalizedText, fromLocalizedTextArray, fromTeamCategory } from "../src/lib/db/mappers";
+import { SPONSORS } from "../src/lib/data/mock-site";
+import { resolveSponsorLogoUrl } from "../src/lib/seed/sponsor-logos";
 
 async function main() {
   console.log("Seeding database...");
@@ -209,13 +212,16 @@ async function main() {
   }
 
   for (const s of seedSponsors()) {
+    const meta = SPONSORS.find((x) => x.id === s.id);
+    const logoUrl = meta?.logoFile ? await resolveSponsorLogoUrl(s.id, meta.logoFile) : null;
+
     await prisma.sponsor.upsert({
       where: { id: s.id },
       create: {
         id: s.id,
         title: fromLocalizedText(s.title),
         tier: s.tier,
-        logoUrl: s.logoUrl ?? null,
+        logoUrl,
         websiteUrl: s.websiteUrl ?? null,
         status: s.status,
         createdAt: new Date(s.createdAt),
@@ -224,6 +230,8 @@ async function main() {
       update: {
         title: fromLocalizedText(s.title),
         tier: s.tier,
+        logoUrl,
+        websiteUrl: s.websiteUrl ?? null,
         status: s.status,
         updatedAt: new Date(s.updatedAt),
       },
@@ -288,8 +296,11 @@ async function main() {
       defaultLang: settings.defaultLang,
       maintenanceMode: settings.maintenanceMode,
       maintenanceMessage: fromLocalizedText(settings.maintenanceMessage),
+      contactInfo: contactInfoToJson(settings.contact),
     },
-    update: {},
+    update: {
+      contactInfo: contactInfoToJson(settings.contact),
+    },
   });
 
   const rankings = seedRankings();

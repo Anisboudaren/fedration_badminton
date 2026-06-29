@@ -8,11 +8,44 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useI18n } from "@/i18n/I18nProvider";
 import { TECHNICAL_REGULATIONS, pickReg } from "@/lib/data/technical-regulations";
+import { FEDERATION_MEMBERS, pickMemberText, type FederationMember } from "@/lib/data/federation-members";
 import { BidiText, LtrNum } from "@/components/ui/bidi-text";
-import { assetUrl } from "@/lib/utils";
+import { assetUrl, cn } from "@/lib/utils";
 const statutesFile = "/assets/info/Collegue Technique 2025 (2).docx";
 import brandTogether from "@/assets/branded images/ABF together we play.webp";
 import photoWide from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.01.webp";
+
+function FederationMemberCard({ member, index, lang }: { member: FederationMember; index: number; lang: string }) {
+  const firstName = pickMemberText(member.firstName, lang);
+  const lastName = pickMemberText(member.lastName, lang);
+  const role = pickMemberText(member.role, lang);
+
+  return (
+    <article
+      className={cn(
+        "group flex flex-col overflow-hidden rounded-lg border border-border/70 bg-card shadow-sm transition duration-300",
+        "hover:-translate-y-1 hover:border-primary/25 hover:shadow-lg",
+      )}
+      style={{ animationDelay: `${index * 50}ms` }}
+    >
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-footer">
+        <img
+          src={member.photo}
+          alt={`${firstName} ${lastName}`}
+          loading="lazy"
+          className="h-full w-full object-contain object-center transition duration-500 group-hover:scale-[1.02]"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-footer/25 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
+      </div>
+      <div className="border-t border-border/60 px-3 py-3 text-center sm:px-4 sm:py-3.5">
+        <p className="text-sm font-semibold leading-snug text-foreground">
+          {firstName} {lastName}
+        </p>
+        <p className="mt-1 text-xs font-medium text-primary">{role}</p>
+      </div>
+    </article>
+  );
+}
 
 function AboutPage() {
   const { t, lang } = useI18n();
@@ -61,6 +94,33 @@ function AboutPage() {
           </div>
           <div className="overflow-hidden rounded-2xl border shadow-lg">
             <img src={assetUrl(brandTogether)} alt="" className="w-full object-cover" loading="lazy" />
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-border/60 bg-gradient-to-b from-muted/40 to-background py-14 md:py-16">
+        <div className="container-px">
+          <div className="mx-auto mb-10 max-w-2xl text-center">
+            <h2 className="section-title">
+              {lang === "ar"
+                ? "فريق الاتحادية"
+                : lang === "fr"
+                  ? "L'équipe dirigeante"
+                  : "Federation leadership"}
+            </h2>
+            <p className="mt-4 text-sm leading-7 text-muted-foreground md:text-base">
+              {lang === "ar"
+                ? "الأعضاء الذين يقودون الاتحادية ويطلقون رؤية تطوير الريشة الطائرة في الجزائر."
+                : lang === "fr"
+                  ? "Les membres qui portent la vision et le développement du badminton algérien à travers le pays."
+                  : "The leaders driving the federation's vision and the growth of badminton across Algeria."}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
+            {FEDERATION_MEMBERS.map((member, index) => (
+              <FederationMemberCard key={member.photo} member={member} index={index} lang={lang} />
+            ))}
           </div>
         </div>
       </section>

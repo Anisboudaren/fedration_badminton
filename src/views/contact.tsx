@@ -2,8 +2,10 @@
 
 
 import { useState } from "react";
-import { MapPin, Phone, Mail, Clock, Share2, Facebook, Instagram, Youtube, Paperclip, Send, Info, Trophy, Users, Newspaper, Handshake, ArrowRight } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Share2, Printer, Paperclip, Send, Info, Trophy, Users, Newspaper, Handshake, ArrowRight } from "lucide-react";
 import { PageHero } from "@/components/layout/PageHero";
+import { SocialLinks, useSiteContact } from "@/components/layout/ContactLinks";
+import { LtrNum } from "@/components/ui/bidi-text";
 import { useI18n } from "@/i18n/I18nProvider";
 import { assetUrl } from "@/lib/utils";
 import hero from "@/assets/hero-badminton.jpg";
@@ -11,13 +13,24 @@ import shuttle from "@/assets/hero-badminton.jpg";
 
 function ContactPage() {
   const { t } = useI18n();
+  const { address, emails, phones, fax, socials } = useSiteContact();
   const [sent, setSent] = useState(false);
 
+  const addressLines = address.split("\n").filter(Boolean);
+
   const cards = [
-    { Icon: MapPin, title: t.contact.address, lines: ["Maison des Fédérations", "Dely Ibrahim, Algiers", "Algeria"] },
-    { Icon: Phone, title: t.contact.phone, lines: ["+213 23 25 82 52", "+213 23 25 86 10"] },
-    { Icon: Mail, title: t.contact.email, lines: ["contact@badminton.dz", "info@badminton.dz"] },
-    { Icon: Clock, title: t.contact.hours, lines: [`${t.contact.sunThu}`, "08:30 – 17:00", `${t.contact.fri}`, "08:30 – 13:00"] },
+    ...(addressLines.length
+      ? [{ Icon: MapPin, title: t.contact.address, lines: addressLines, href: undefined as string | undefined }]
+      : []),
+    ...(phones.length ? [{ Icon: Phone, title: t.contact.phone, lines: phones, href: "tel" as const }] : []),
+    ...(emails.length ? [{ Icon: Mail, title: t.contact.email, lines: emails, href: "mailto" as const }] : []),
+    ...(fax ? [{ Icon: Printer, title: t.contact.fax, lines: [fax], href: undefined as string | undefined }] : []),
+    {
+      Icon: Clock,
+      title: t.contact.hours,
+      lines: [`${t.contact.sunThu}`, "08:30 – 17:00", `${t.contact.fri}`, "08:30 – 13:00"],
+      href: undefined as string | undefined,
+    },
   ];
 
   const help = [
@@ -36,26 +49,38 @@ function ContactPage() {
       <section className="container-px py-14">
         <h2 className="section-title mb-8">{t.contact.details}</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {cards.map(({ Icon, title, lines }) => (
+          {cards.map(({ Icon, title, lines, href }) => (
             <div key={title} className="bg-card border border-border rounded-lg p-5 hover:shadow-md transition">
               <Icon className="h-7 w-7 text-primary mb-3" strokeWidth={1.5} />
               <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">{title}</h3>
               <div className="mt-2 space-y-0.5 text-sm text-muted-foreground">
-                {lines.map((l, i) => <p key={i}>{l}</p>)}
+                {lines.map((l, i) =>
+                  href === "tel" ? (
+                    <p key={i}>
+                      <a href={`tel:${l.replace(/\s/g, "")}`} className="hover:text-primary transition">
+                        <LtrNum value={l} />
+                      </a>
+                    </p>
+                  ) : href === "mailto" ? (
+                    <p key={i}>
+                      <a href={`mailto:${l}`} className="hover:text-primary transition">
+                        <LtrNum value={l} />
+                      </a>
+                    </p>
+                  ) : (
+                    <p key={i}>{l}</p>
+                  ),
+                )}
               </div>
             </div>
           ))}
-          <div className="bg-card border border-border rounded-lg p-5">
-            <Share2 className="h-7 w-7 text-primary mb-3" strokeWidth={1.5} />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">{t.contact.social}</h3>
-            <div className="mt-3 flex gap-2">
-              {[Facebook, Instagram, Youtube].map((Icon, i) => (
-                <a key={i} href="#" className="h-9 w-9 grid place-items-center rounded-full border border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition">
-                  <Icon className="h-4 w-4" />
-                </a>
-              ))}
+          {socials.length > 0 && (
+            <div className="bg-card border border-border rounded-lg p-5">
+              <Share2 className="h-7 w-7 text-primary mb-3" strokeWidth={1.5} />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">{t.contact.social}</h3>
+              <SocialLinks theme="light" className="mt-3" />
             </div>
-          </div>
+          )}
         </div>
       </section>
 

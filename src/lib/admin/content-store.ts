@@ -1,3 +1,4 @@
+import { defaultSiteContactInfo } from "@/lib/data/contact-info";
 import type {
   ArchiveYear,
   Article,
@@ -72,6 +73,7 @@ export function defaultSiteSettings(): SiteSettings {
       fr: "Nous effectuons actuellement une maintenance. Revenez bientôt.",
       ar: "نقوم حالياً بأعمال صيانة. يرجى العودة قريباً.",
     },
+    contact: defaultSiteContactInfo(),
   };
 }
 

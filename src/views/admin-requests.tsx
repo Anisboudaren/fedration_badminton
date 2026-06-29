@@ -16,6 +16,7 @@ import {
   updateLicenceRequestApi,
 } from "@/lib/cms/client";
 import { useI18n } from "@/i18n/I18nProvider";
+import { cn } from "@/lib/utils";
 
 function RequestsAdminPage() {
   const { t } = useI18n();
@@ -88,10 +89,10 @@ function RequestsAdminPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{t.admin.pages.requests.title}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t.admin.pages.requests.description}</p>
+    <div className="space-y-5 sm:space-y-6">
+      <div className="min-w-0">
+        <h1 className="text-xl font-bold sm:text-2xl">{t.admin.pages.requests.title}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t.admin.pages.requests.description}</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -100,6 +101,7 @@ function RequestsAdminPage() {
             key={tab.key}
             variant={filter === tab.key ? "default" : "outline"}
             size="sm"
+            className="flex-1 sm:flex-none"
             onClick={() => setFilter(tab.key)}
           >
             {tab.label}
@@ -107,8 +109,8 @@ function RequestsAdminPage() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <Card>
+      <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:gap-6">
+        <Card className="min-w-0 overflow-hidden">
           <CardHeader>
             <CardTitle className="text-base">{t.admin.pages.requests.title}</CardTitle>
           </CardHeader>
@@ -116,46 +118,96 @@ function RequestsAdminPage() {
             {filtered.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t.admin.requests.noRequests}</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-muted-foreground">
-                      <th className="pb-2 pe-4">{t.admin.requests.applicant}</th>
-                      <th className="pb-2 pe-4">{t.admin.requests.type}</th>
-                      <th className="pb-2 pe-4">{t.admin.forms.wilaya}</th>
-                      <th className="pb-2 pe-4">{t.admin.requests.submitted}</th>
-                      <th className="pb-2">{t.admin.forms.category}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((req) => (
-                      <tr
-                        key={req.id}
-                        className={`border-b cursor-pointer hover:bg-muted/50 ${selectedId === req.id ? "bg-muted/30" : ""}`}
-                        onClick={() => openDetail(req)}
-                      >
-                        <td className="py-3 pe-4 font-medium">{req.fullName}</td>
-                        <td className="py-3 pe-4">
-                          {req.licenceType === "athlete" ? t.admin.requests.athlete : t.admin.requests.coach}
-                        </td>
-                        <td className="py-3 pe-4">{req.wilaya}</td>
-                        <td className="py-3 pe-4">{new Date(req.submittedAt).toLocaleDateString()}</td>
-                        <td className="py-3">
-                          <Badge variant={req.status === "pending" ? "secondary" : req.status === "approved" ? "default" : "destructive"}>
-                            {t.admin.requestStatus[req.status]}
-                          </Badge>
-                        </td>
+              <>
+                <div className="space-y-2 md:hidden">
+                  {filtered.map((req) => (
+                    <button
+                      key={req.id}
+                      type="button"
+                      onClick={() => openDetail(req)}
+                      className={cn(
+                        "w-full rounded-lg border p-3 text-start transition-colors hover:bg-muted/50",
+                        selectedId === req.id && "border-primary/40 bg-muted/30",
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-medium">{req.fullName}</p>
+                        <Badge
+                          variant={
+                            req.status === "pending"
+                              ? "secondary"
+                              : req.status === "approved"
+                                ? "default"
+                                : "destructive"
+                          }
+                          className="shrink-0 text-[10px]"
+                        >
+                          {t.admin.requestStatus[req.status]}
+                        </Badge>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {req.licenceType === "athlete" ? t.admin.requests.athlete : t.admin.requests.coach} ·{" "}
+                        {req.wilaya}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {new Date(req.submittedAt).toLocaleDateString()}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="hidden overflow-x-auto md:block">
+                  <table className="w-full min-w-[640px] text-sm">
+                    <thead>
+                      <tr className="border-b text-start text-muted-foreground">
+                        <th className="pb-2 pe-4">{t.admin.requests.applicant}</th>
+                        <th className="pb-2 pe-4">{t.admin.requests.type}</th>
+                        <th className="pb-2 pe-4">{t.admin.forms.wilaya}</th>
+                        <th className="pb-2 pe-4">{t.admin.requests.submitted}</th>
+                        <th className="pb-2">{t.admin.forms.category}</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {filtered.map((req) => (
+                        <tr
+                          key={req.id}
+                          className={cn(
+                            "cursor-pointer border-b hover:bg-muted/50",
+                            selectedId === req.id && "bg-muted/30",
+                          )}
+                          onClick={() => openDetail(req)}
+                        >
+                          <td className="py-3 pe-4 font-medium">{req.fullName}</td>
+                          <td className="py-3 pe-4">
+                            {req.licenceType === "athlete" ? t.admin.requests.athlete : t.admin.requests.coach}
+                          </td>
+                          <td className="py-3 pe-4">{req.wilaya}</td>
+                          <td className="py-3 pe-4">{new Date(req.submittedAt).toLocaleDateString()}</td>
+                          <td className="py-3">
+                            <Badge
+                              variant={
+                                req.status === "pending"
+                                  ? "secondary"
+                                  : req.status === "approved"
+                                    ? "default"
+                                    : "destructive"
+                              }
+                            >
+                              {t.admin.requestStatus[req.status]}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
 
         {selected && (
-          <Card>
+          <Card className="min-w-0 lg:sticky lg:top-[4.5rem] lg:self-start">
             <CardHeader>
               <CardTitle className="text-base">{t.admin.requests.detail}</CardTitle>
             </CardHeader>

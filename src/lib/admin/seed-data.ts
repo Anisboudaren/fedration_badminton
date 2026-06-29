@@ -158,8 +158,9 @@ export function seedSponsors(): Sponsor[] {
   const ts = now();
   return SPONSORS.map((s) => ({
     id: s.id,
-    title: toLocalized({ ...s.name, en: s.name.fr }),
+    title: toLocalized({ en: s.name.en ?? s.name.fr, fr: s.name.fr, ar: s.name.ar }),
     tier: s.tier,
+    websiteUrl: s.websiteUrl ?? "",
     status: "published" as const,
     createdAt: ts,
     updatedAt: ts,

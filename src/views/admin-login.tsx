@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
-import logo from "@/assets/main logo.png";
+import { LOGO_DARK_TEXT, LOGO_WHITE_TEXT } from "@/lib/brand-logos";
 import { LangSwitcher } from "@/components/layout/LangSwitcher";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +52,7 @@ function AdminLoginPage() {
 
         <div className="relative flex flex-1 flex-col justify-between p-10 xl:p-14">
           <div>
-            <img src={assetUrl(logo)} alt="ABF" className="h-16 w-auto xl:h-20" />
+            <img src={LOGO_WHITE_TEXT} alt="ABF" className="h-20 w-auto max-w-[280px] xl:h-24" />
             <p className="mt-6 max-w-sm text-sm font-medium uppercase tracking-[0.2em] text-white/70">
               {t.hero.tagline}
             </p>
@@ -88,7 +88,7 @@ function AdminLoginPage() {
           <div className="w-full max-w-md">
             <div className="mb-8 text-center lg:text-start">
               <img
-                src={assetUrl(logo)}
+                src={assetUrl(LOGO_DARK_TEXT)}
                 alt="ABF"
                 className="mx-auto mb-5 h-14 w-auto lg:hidden"
               />

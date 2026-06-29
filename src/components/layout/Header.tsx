@@ -3,17 +3,49 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, Facebook, Instagram, Youtube, Sparkles } from "lucide-react";
-import { useState } from "react";
-import logo from "@/assets/main logo.png";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { LOGO_DARK_TEXT, LOGO_WHITE_TEXT } from "@/lib/brand-logos";
 import { BadmintonIcon } from "@/components/icons/BadmintonIcon";
 import { useI18n } from "@/i18n/I18nProvider";
 import { LangSwitcher } from "@/components/layout/LangSwitcher";
 import { cn, assetUrl } from "@/lib/utils";
 
+const SCROLL_THRESHOLD = 72;
+
 export function Header() {
   const { t } = useI18n();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  const isHome = pathname === "/";
+  const overlay = isHome && !scrolled;
+
+  useEffect(() => {
+    if (!isHome) {
+      setScrolled(false);
+      return;
+    }
+
+    const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [isHome]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
 
   const links = [
     { to: "/", label: t.nav.home },
@@ -28,14 +60,88 @@ export function Header() {
 
   const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(to));
 
+  const mobileMenu =
+    open &&
+    createPortal(
+      <div className="fixed inset-0 z-[200] xl:hidden" role="dialog" aria-modal="true" aria-label="Menu">
+        <button
+          type="button"
+          aria-label="Close menu"
+          className="absolute inset-0 bg-gradient-to-b from-footer/85 via-footer/70 to-footer/60 backdrop-blur-[6px] backdrop-saturate-150"
+          onClick={() => setOpen(false)}
+        />
+
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="absolute end-4 top-4 z-[210] grid h-14 w-14 place-items-center rounded-full border-2 border-white/35 bg-white/15 text-white shadow-lg backdrop-blur-sm transition hover:bg-white/25 active:scale-95 sm:end-6 sm:top-6"
+          aria-label="Close menu"
+        >
+          <X className="h-8 w-8" strokeWidth={2.5} />
+        </button>
+
+        <nav className="relative z-[205] flex h-full min-h-[100dvh] flex-col items-center justify-center gap-2 overflow-y-auto px-6 py-20">
+          {links.map((l) => (
+            <Link
+              key={l.to}
+              href={l.to}
+              onClick={() => setOpen(false)}
+              className={cn(
+                "font-display w-full max-w-md rounded-2xl px-6 py-4 text-center text-2xl font-semibold leading-snug tracking-wide transition sm:text-[1.65rem]",
+                "cta" in l && l.cta
+                  ? isActive(l.to)
+                    ? "flex items-center justify-center gap-3 border-2 border-primary bg-primary/30 text-primary shadow-lg"
+                    : "flex items-center justify-center gap-3 border-2 border-primary/60 bg-primary/20 text-white shadow-lg shadow-primary/20 hover:bg-primary/30"
+                  : isActive(l.to)
+                    ? "bg-white/10 text-primary"
+                    : "text-white/95 hover:bg-white/10 hover:text-white",
+              )}
+            >
+              {"cta" in l && l.cta ? (
+                <>
+                  <BadmintonIcon className="h-7 w-7 text-inherit" />
+                  <span>{l.label}</span>
+                  <Sparkles className="h-5 w-5 shrink-0 text-primary" />
+                </>
+              ) : (
+                l.label
+              )}
+            </Link>
+          ))}
+        </nav>
+      </div>,
+      document.body,
+    );
+
   return (
-    <header className="sticky top-0 z-50">
-      <div className="bg-topbar text-topbar-foreground text-[11px]">
+    <>
+    <header
+      className={cn(
+        "top-0 z-50 w-full transition-all duration-300",
+        isHome ? "fixed" : "sticky",
+        overlay ? "bg-transparent" : "border-b border-border bg-background/95 shadow-sm backdrop-blur-md",
+      )}
+    >
+      <div
+        className={cn(
+          "text-[11px] transition-colors duration-300",
+          overlay ? "bg-footer/80 text-white/90 backdrop-blur-sm" : "bg-topbar text-topbar-foreground",
+        )}
+      >
         <div className="container-px flex h-8 items-center justify-between">
           <span className="hidden truncate sm:inline">🏸 {t.welcome}</span>
           <div className="flex items-center gap-3 ms-auto">
-            <Link href="/about" className="hidden md:inline hover:text-white/80">
+            <Link
+              href="/about"
+              className={cn("hidden md:inline transition", overlay ? "hover:text-white" : "hover:text-white/80")}
+            >
               {t.about}
+            </Link>
+            <Link
+              href="/contact"
+              className={cn("hidden md:inline transition", overlay ? "hover:text-white" : "hover:text-white/80")}
+            >
+              {t.nav.contact}
             </Link>
             <LangSwitcher variant="topbar" />
             <div className="hidden items-center gap-2 border-s border-white/20 ps-2 sm:flex">
@@ -47,10 +153,19 @@ export function Header() {
         </div>
       </div>
 
-      <div className="border-b border-border bg-background/95 shadow-sm backdrop-blur">
+      <div
+        className={cn(
+          "transition-all duration-300",
+          overlay && "bg-gradient-to-b from-footer/95 via-footer/75 to-transparent",
+        )}
+      >
         <div className="container-px flex h-14 items-center justify-between gap-3 md:h-16">
           <Link href="/" className="flex shrink-0 items-center">
-            <img src={assetUrl(logo)} alt="ABF" className="h-9 w-auto md:h-11" />
+            <img
+              src={overlay ? LOGO_WHITE_TEXT : assetUrl(LOGO_DARK_TEXT)}
+              alt="ABF"
+              className="h-9 w-auto md:h-11"
+            />
           </Link>
 
           <nav className="hidden items-center gap-0.5 xl:flex">
@@ -76,9 +191,13 @@ export function Header() {
                   href={l.to}
                   className={cn(
                     "px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wide transition",
-                    isActive(l.to)
-                      ? "border-b-2 border-primary text-primary"
-                      : "text-foreground/75 hover:text-primary",
+                    overlay
+                      ? isActive(l.to)
+                        ? "border-b-2 border-accent text-white"
+                        : "text-white/85 hover:text-white"
+                      : isActive(l.to)
+                        ? "border-b-2 border-primary text-primary"
+                        : "text-foreground/75 hover:text-primary",
                   )}
                 >
                   {l.label}
@@ -88,63 +207,19 @@ export function Header() {
           </nav>
           <button
             onClick={() => setOpen(!open)}
-            className="relative z-[60] p-1.5 text-foreground xl:hidden"
+            className={cn(
+              "relative p-1.5 xl:hidden",
+              overlay ? "text-white" : "text-foreground",
+            )}
             aria-label="Menu"
+            aria-expanded={open}
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
-
-      {open ? (
-        <div className="fixed inset-0 z-[55] xl:hidden">
-          <button
-            type="button"
-            aria-label="Close menu"
-            className="absolute inset-0 bg-gradient-to-b from-footer/70 via-footer/55 to-footer/45 backdrop-blur-[6px] backdrop-saturate-150"
-            onClick={() => setOpen(false)}
-          />
-
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="absolute end-4 top-4 z-[60] grid h-16 w-16 place-items-center rounded-full border-2 border-white/35 bg-white/15 text-white shadow-lg backdrop-blur-sm transition hover:bg-white/25 active:scale-95 sm:end-6 sm:top-6"
-            aria-label="Close menu"
-          >
-            <X className="h-9 w-9" strokeWidth={2.5} />
-          </button>
-
-          <nav className="relative z-[58] flex h-full flex-col items-center justify-center gap-2 px-6 py-20">
-            {links.map((l) => (
-              <Link
-                key={l.to}
-                href={l.to}
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "font-display w-full max-w-md rounded-2xl px-6 py-4 text-center text-2xl font-semibold leading-snug tracking-wide transition sm:text-[1.65rem]",
-                  "cta" in l && l.cta
-                    ? isActive(l.to)
-                      ? "flex items-center justify-center gap-3 border-2 border-primary bg-primary/30 text-primary shadow-lg"
-                      : "flex items-center justify-center gap-3 border-2 border-primary/60 bg-primary/20 text-white shadow-lg shadow-primary/20 hover:bg-primary/30"
-                    : isActive(l.to)
-                      ? "bg-white/10 text-primary"
-                      : "text-white/95 hover:bg-white/10 hover:text-white",
-                )}
-              >
-                {"cta" in l && l.cta ? (
-                  <>
-                    <BadmintonIcon className="h-7 w-7 text-inherit" />
-                    <span>{l.label}</span>
-                    <Sparkles className="h-5 w-5 shrink-0 text-primary" />
-                  </>
-                ) : (
-                  l.label
-                )}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      ) : null}
     </header>
+    {mobileMenu}
+    </>
   );
 }

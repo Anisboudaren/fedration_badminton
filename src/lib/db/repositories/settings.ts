@@ -2,7 +2,8 @@ import prisma from "@/lib/prisma";
 import type { RankingsData, SiteSettings } from "@/lib/admin/types";
 import { defaultSiteSettings } from "@/lib/admin/content-store";
 import { fromLocalizedText, mapRankingsData, mapSiteSettings } from "@/lib/db/mappers";
-import { seedRankings } from "@/lib/admin/seed-data";
+import { normalizeSiteContactInfo, contactInfoToJson } from "@/lib/data/contact-info";
+import { sortRankingsData } from "@/lib/data/rankings";
 
 export async function getSiteSettings(): Promise<SiteSettings> {
   const row = await prisma.siteSettings.findUnique({ where: { id: "default" } });
@@ -20,6 +21,7 @@ export async function saveSiteSettings(settings: SiteSettings): Promise<SiteSett
       defaultLang: settings.defaultLang,
       maintenanceMode: settings.maintenanceMode,
       maintenanceMessage: fromLocalizedText(settings.maintenanceMessage),
+      contactInfo: contactInfoToJson(settings.contact),
     },
     update: {
       heroTitle: fromLocalizedText(settings.heroTitle),
@@ -27,6 +29,7 @@ export async function saveSiteSettings(settings: SiteSettings): Promise<SiteSett
       defaultLang: settings.defaultLang,
       maintenanceMode: settings.maintenanceMode,
       maintenanceMessage: fromLocalizedText(settings.maintenanceMessage),
+      contactInfo: contactInfoToJson(settings.contact),
     },
   });
   return mapSiteSettings(row);
@@ -34,15 +37,16 @@ export async function saveSiteSettings(settings: SiteSettings): Promise<SiteSett
 
 export async function getRankings(): Promise<RankingsData> {
   const row = await prisma.rankingsSnapshot.findUnique({ where: { id: "default" } });
-  if (!row) return seedRankings();
-  return mapRankingsData(row.data);
+  if (!row) return sortRankingsData(seedRankings());
+  return sortRankingsData(mapRankingsData(row.data));
 }
 
 export async function saveRankings(data: RankingsData): Promise<RankingsData> {
+  const normalized = sortRankingsData(data);
   const row = await prisma.rankingsSnapshot.upsert({
     where: { id: "default" },
-    create: { id: "default", data: data as object },
-    update: { data: data as object },
+    create: { id: "default", data: normalized as object },
+    update: { data: normalized as object },
   });
-  return mapRankingsData(row.data);
+  return sortRankingsData(mapRankingsData(row.data));
 }

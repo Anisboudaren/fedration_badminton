@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { RankingsCategory, RankingsData, RankingsPlayer, RankingsTeam } from "@/lib/admin/types";
 import { fetchRankings, saveRankingsApi } from "@/lib/cms/client";
+import { computeRoundTotal, sortRankingsData } from "@/lib/data/rankings";
 import { useI18n } from "@/i18n/I18nProvider";
 import { toast } from "sonner";
 
@@ -33,7 +34,11 @@ function RankingsAdminPage() {
         categories: base.categories.map((cat) => {
           if (cat.id !== catId || cat.id === "teams") return cat;
           const players = [...cat.players];
-          players[index] = { ...players[index], [field]: value };
+          const updated = { ...players[index], [field]: value };
+          if (field === "j1" || field === "j2" || field === "j3") {
+            updated.total = computeRoundTotal(updated);
+          }
+          players[index] = updated;
           return { ...cat, players };
         }),
       };
@@ -48,7 +53,11 @@ function RankingsAdminPage() {
         categories: base.categories.map((cat) => {
           if (cat.id !== "teams") return cat;
           const teams = [...cat.teams];
-          teams[index] = { ...teams[index], [field]: value };
+          const updated = { ...teams[index], [field]: value };
+          if (field === "j1" || field === "j2" || field === "j3") {
+            updated.total = computeRoundTotal(updated);
+          }
+          teams[index] = updated;
           return { ...cat, teams };
         }),
       };
@@ -67,7 +76,7 @@ function RankingsAdminPage() {
 
   const onSave = () => {
     if (!draft) return;
-    saveMutation.mutate(draft);
+    saveMutation.mutate(sortRankingsData(draft));
   };
 
   if (isLoading || !draft) {
@@ -95,7 +104,7 @@ function RankingsAdminPage() {
       </div>
 
       <Tabs defaultValue={playerCategories[0]?.id ?? "ws"}>
-        <TabsList className="flex flex-wrap h-auto">
+        <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1">
           {draft.categories.map((cat) => (
             <TabsTrigger key={cat.id} value={cat.id}>
               {cat.fr}
@@ -113,14 +122,14 @@ function RankingsAdminPage() {
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="border-b">
-                      <th className="pb-2 pe-2 text-left">#</th>
-                      <th className="pb-2 pe-2 text-left">Name</th>
-                      <th className="pb-2 pe-2 text-left">Club</th>
-                      <th className="pb-2 pe-2 text-left">League</th>
-                      <th className="pb-2 pe-2 text-left">J1</th>
-                      <th className="pb-2 pe-2 text-left">J2</th>
-                      <th className="pb-2 pe-2 text-left">J3</th>
-                      <th className="pb-2 text-left">Total</th>
+                      <th className="pb-2 pe-2 text-start">#</th>
+                      <th className="pb-2 pe-2 text-start">Name</th>
+                      <th className="pb-2 pe-2 text-start">Club</th>
+                      <th className="pb-2 pe-2 text-start">League</th>
+                      <th className="pb-2 pe-2 text-start">J1</th>
+                      <th className="pb-2 pe-2 text-start">J2</th>
+                      <th className="pb-2 pe-2 text-start">J3</th>
+                      <th className="pb-2 text-start">Total</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -148,7 +157,7 @@ function RankingsAdminPage() {
                             onChange={(e) => updatePlayer(cat.id, i, "league", e.target.value)}
                           />
                         </td>
-                        {(["j1", "j2", "j3", "total"] as const).map((f) => (
+                        {(["j1", "j2", "j3"] as const).map((f) => (
                           <td key={f} className="py-1 pe-2">
                             <Input
                               className="h-7 text-xs w-16"
@@ -158,6 +167,7 @@ function RankingsAdminPage() {
                             />
                           </td>
                         ))}
+                        <td className="py-1 pe-2 font-semibold tabular-nums">{p.total}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -177,13 +187,13 @@ function RankingsAdminPage() {
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="border-b">
-                      <th className="pb-2 pe-2 text-left">#</th>
-                      <th className="pb-2 pe-2 text-left">Club</th>
-                      <th className="pb-2 pe-2 text-left">Wilaya</th>
-                      <th className="pb-2 pe-2 text-left">J1</th>
-                      <th className="pb-2 pe-2 text-left">J2</th>
-                      <th className="pb-2 pe-2 text-left">J3</th>
-                      <th className="pb-2 text-left">Total</th>
+                      <th className="pb-2 pe-2 text-start">#</th>
+                      <th className="pb-2 pe-2 text-start">Club</th>
+                      <th className="pb-2 pe-2 text-start">Wilaya</th>
+                      <th className="pb-2 pe-2 text-start">J1</th>
+                      <th className="pb-2 pe-2 text-start">J2</th>
+                      <th className="pb-2 pe-2 text-start">J3</th>
+                      <th className="pb-2 text-start">Total</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -204,7 +214,7 @@ function RankingsAdminPage() {
                             onChange={(e) => updateTeam(i, "wilaya", e.target.value)}
                           />
                         </td>
-                        {(["j1", "j2", "j3", "total"] as const).map((f) => (
+                        {(["j1", "j2", "j3"] as const).map((f) => (
                           <td key={f} className="py-1 pe-2">
                             <Input
                               className="h-7 text-xs w-16"
@@ -214,6 +224,7 @@ function RankingsAdminPage() {
                             />
                           </td>
                         ))}
+                        <td className="py-1 pe-2 font-semibold tabular-nums">{team.total}</td>
                       </tr>
                     ))}
                   </tbody>

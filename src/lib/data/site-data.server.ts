@@ -28,6 +28,8 @@ import {
   listTeams,
 } from "@/lib/db/repositories/collections";
 import { getRankings, getSiteSettings } from "@/lib/db/repositories/settings";
+import { sortSponsorsByTier } from "@/lib/data/sponsors";
+import { eventsFromToday } from "@/lib/data/events";
 
 export { pickLocalized };
 
@@ -49,7 +51,7 @@ export async function getEvents(): Promise<EventItem[]> {
 
 export async function getUpcomingEvents(): Promise<EventItem[]> {
   const events = await listEvents(true);
-  return events.filter((e) => e.eventStatus === "upcoming");
+  return eventsFromToday(events);
 }
 
 export async function getFinishedEvents(): Promise<EventItem[]> {
@@ -137,13 +139,7 @@ export async function getHomePageData(): Promise<HomePageData> {
     getMatchResults(),
   ]);
 
-  const upcoming = allEvents.filter((e) => e.eventStatus === "upcoming");
-  const upcomingEvents =
-    upcoming.length > 0
-      ? upcoming
-      : [...allEvents].sort(
-          (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime(),
-        );
+  const upcomingEvents = eventsFromToday(allEvents, 3);
 
-  return { settings, articles, upcomingEvents, teams, media, sponsors, matchResults };
+  return { settings, articles, upcomingEvents, teams, media, sponsors: sortSponsorsByTier(sponsors), matchResults };
 }

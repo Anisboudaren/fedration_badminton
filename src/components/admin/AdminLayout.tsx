@@ -49,7 +49,7 @@ import { useQuery } from "@tanstack/react-query";
 import { logout, getAuthUserEmail } from "@/lib/admin/auth";
 import { fetchCollectionStats } from "@/lib/cms/client";
 import { useI18n } from "@/i18n/I18nProvider";
-import { cn, assetUrl } from "@/lib/utils";
+import { assetUrl } from "@/lib/utils";
 
 type NavKey =
   | "dashboard"
@@ -147,7 +147,7 @@ function usePendingRequestCount() {
   return data?.requests ?? 0;
 }
 
-function NavGroups({ compact, tooltipSide }: { compact?: boolean; tooltipSide: "left" | "right" }) {
+function NavGroups({ compact, tooltipSide, onNavigate }: { compact?: boolean; tooltipSide: "left" | "right"; onNavigate?: () => void }) {
   const { t } = useI18n();
   const isActive = useNavActive();
   const pendingCount = usePendingRequestCount();
@@ -169,7 +169,7 @@ function NavGroups({ compact, tooltipSide }: { compact?: boolean; tooltipSide: "
                       isActive={active}
                       tooltip={{ children: label, side: tooltipSide }}
                     >
-                      <Link href={to}>
+                      <Link href={to} onClick={onNavigate}>
                         <Icon />
                         <span>{label}</span>
                       </Link>
@@ -188,69 +188,15 @@ function NavGroups({ compact, tooltipSide }: { compact?: boolean; tooltipSide: "
   );
 }
 
-function MobileIconRail() {
-  const { t } = useI18n();
-  const isActive = useNavActive();
-  const pendingCount = usePendingRequestCount();
-  const router = useRouter();
-  const allLinks = navGroups.flatMap((g) => g.links);
-
-  const onLogout = () => {
-    logout();
-    router.push("/admin/login" );
-  };
-
-  return (
-    <aside className="fixed inset-y-0 start-0 z-40 flex w-14 flex-col border-e border-sidebar-border bg-sidebar text-sidebar-foreground md:hidden">
-      <div className="flex h-14 shrink-0 items-center justify-center border-b border-sidebar-border">
-        <img src={assetUrl(logo)} alt="ABF" className="h-8 w-8 object-contain" />
-      </div>
-      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-1.5">
-        {allLinks.map(({ to, icon: Icon, key, exact }) => {
-          const active = isActive(to, exact);
-          const label = t.admin.nav[key];
-          return (
-            <Link
-              key={to}
-              href={to}
-              className={cn(
-                "relative flex h-10 w-full items-center justify-center rounded-md transition-colors",
-                active
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
-              )}
-              title={label}
-              aria-label={label}
-            >
-              <Icon className="h-4 w-4" />
-              {key === "requests" && pendingCount > 0 && (
-                <span className="absolute end-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold text-accent-foreground">
-                  {pendingCount}
-                </span>
-              )}
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="border-t border-sidebar-border p-1.5">
-        <button
-          type="button"
-          onClick={onLogout}
-          className="flex h-10 w-full items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
-          title={t.admin.actions.logout}
-          aria-label={t.admin.actions.logout}
-        >
-          <LogOut className="h-4 w-4" />
-        </button>
-      </div>
-    </aside>
-  );
-}
-
 function AdminSidebarPanel({ side, tooltipSide }: { side: "left" | "right"; tooltipSide: "left" | "right" }) {
   const { t } = useI18n();
   const email = getAuthUserEmail();
   const initials = email.slice(0, 2).toUpperCase();
+  const { setOpenMobile, isMobile } = useSidebar();
+
+  const closeMobile = () => {
+    if (isMobile) setOpenMobile(false);
+  };
 
   return (
     <Sidebar collapsible="icon" side={side}>
@@ -258,7 +204,7 @@ function AdminSidebarPanel({ side, tooltipSide }: { side: "left" | "right"; tool
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild className="hover:bg-transparent active:bg-transparent">
-              <Link href="/admin">
+              <Link href="/admin" onClick={closeMobile}>
                 <img src={assetUrl(logo)} alt="ABF" className="size-8 shrink-0 object-contain" />
                 <div className="grid flex-1 text-start text-sm leading-tight">
                   <span className="truncate font-semibold">{t.admin.title}</span>
@@ -270,8 +216,8 @@ function AdminSidebarPanel({ side, tooltipSide }: { side: "left" | "right"; tool
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent className="gap-0 overflow-y-auto">
-        <NavGroups tooltipSide={tooltipSide} />
+      <SidebarContent className="gap-0 overflow-y-auto overscroll-contain">
+        <NavGroups tooltipSide={tooltipSide} onNavigate={closeMobile} />
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">
@@ -295,7 +241,7 @@ function AdminSidebarPanel({ side, tooltipSide }: { side: "left" | "right"; tool
   );
 }
 
-function RtlSidebarTrigger() {
+function AdminSidebarTrigger() {
   const { dir } = useI18n();
   const { toggleSidebar } = useSidebar();
   const PanelIcon = dir === "rtl" ? PanelRight : PanelLeft;
@@ -304,7 +250,7 @@ function RtlSidebarTrigger() {
     <Button
       variant="ghost"
       size="icon"
-      className="-ms-1 hidden h-7 w-7 md:inline-flex"
+      className="h-8 w-8 shrink-0"
       onClick={toggleSidebar}
       aria-label="Toggle sidebar"
     >
@@ -317,11 +263,10 @@ function AdminTopBar() {
   const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
-  const isNavigating = false;
 
   const onLogout = () => {
     logout();
-    router.push("/admin/login" );
+    router.push("/admin/login");
   };
 
   const pageTitle =
@@ -329,28 +274,27 @@ function AdminTopBar() {
       ?.key ?? "dashboard";
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div
-        className={cn(
-          "pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-primary transition-opacity duration-200",
-          isNavigating ? "opacity-100" : "opacity-0",
-        )}
-      />
-      <RtlSidebarTrigger />
-      <Separator orientation="vertical" className="mx-1 hidden h-4 md:block" />
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-1.5 border-b bg-background/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:gap-2 sm:px-4">
+      <AdminSidebarTrigger />
+      <Separator orientation="vertical" className="mx-0.5 hidden h-4 sm:block" />
       <div className="min-w-0 flex-1">
-        <h1 className="truncate text-sm font-semibold md:text-base">
+        <h1 className="truncate text-sm font-semibold sm:text-base">
           {t.admin.nav[pageTitle as NavKey]}
         </h1>
       </div>
-      <LangSwitcher className="shrink-0" />
-      <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
+      <LangSwitcher className="shrink-0 [&_button]:px-1.5 [&_button]:text-[10px] sm:[&_button]:px-2 sm:[&_button]:text-[11px]" />
+      <Button variant="ghost" size="icon" asChild className="h-8 w-8 shrink-0 sm:hidden">
+        <Link href="/" aria-label={t.nav.home}>
+          <ExternalLink className="h-4 w-4" />
+        </Link>
+      </Button>
+      <Button variant="ghost" size="sm" asChild className="hidden shrink-0 sm:inline-flex">
         <Link href="/">
           <ExternalLink className="h-4 w-4" />
           <span className="hidden lg:inline">{t.nav.home}</span>
         </Link>
       </Button>
-      <Button variant="outline" size="sm" onClick={onLogout}>
+      <Button variant="outline" size="icon" onClick={onLogout} className="h-8 w-8 shrink-0 sm:h-9 sm:w-auto sm:px-3">
         <LogOut className="h-4 w-4" />
         <span className="hidden sm:inline">{t.admin.actions.logout}</span>
       </Button>
@@ -365,13 +309,10 @@ export function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider defaultOpen>
-      <MobileIconRail />
-      <div className="hidden md:contents">
-        <AdminSidebarPanel side={sidebarSide} tooltipSide={tooltipSide} />
-      </div>
-      <SidebarInset className="min-h-svh w-full ps-14 md:ps-0" dir={dir}>
+      <AdminSidebarPanel side={sidebarSide} tooltipSide={tooltipSide} />
+      <SidebarInset className="min-h-svh min-w-0 w-full max-w-full overflow-x-hidden">
         <AdminTopBar />
-        <div className="flex-1 p-4 sm:p-6 lg:p-8">{children}</div>
+        <div className="flex-1 p-3 sm:p-6 lg:p-8">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { BidiText, LtrNum } from "@/components/ui/bidi-text";
 import { useI18n } from "@/i18n/I18nProvider";
 import { pickLocalized } from "@/lib/data/site-data";
+import { sortRankingsData } from "@/lib/data/rankings";
 import type { ArchiveYear, EventItem, MatchResult, RankingsData } from "@/lib/admin/types";
 const rankingsFile = "/assets/info/CLASSEMENT CHAMPIONNAT NATIONAL SENIORS 2026(1)(1) (1).xls";
 import photo3 from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.06.webp";
@@ -44,7 +45,7 @@ function EventsPage({
   const finished = initialFinished;
   const allEvents = initialEvents;
   const matchResults = initialMatchResults;
-  const NATIONAL_RANKINGS = initialRankings;
+  const NATIONAL_RANKINGS = sortRankingsData(initialRankings);
   const archiveYears = initialArchiveYears;
   const activeRanking = NATIONAL_RANKINGS.categories.find((c) => c.id === rankingCat);
 

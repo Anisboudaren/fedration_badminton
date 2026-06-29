@@ -65,12 +65,48 @@ export const ARCHIVE_YEARS = [
 ];
 
 export const SPONSORS = [
-  { id: "s1", name: { ar: "موبيليس", fr: "Mobilis" }, tier: "gold" as const },
-  { id: "s2", name: { ar: "سوناطراك", fr: "Sonatrach" }, tier: "gold" as const },
-  { id: "s3", name: { ar: "يونيكس", fr: "YONEX" }, tier: "silver" as const },
-  { id: "s4", name: { ar: "الخطوط الجوية الجزائرية", fr: "Air Algérie" }, tier: "silver" as const },
-  { id: "s5", name: { ar: "بيك", fr: "PEAK" }, tier: "bronze" as const },
-  { id: "s6", name: { ar: "BWF", fr: "BWF" }, tier: "bronze" as const },
+  {
+    id: "s1",
+    name: { ar: "موبيليس", fr: "Mobilis", en: "Mobilis" },
+    tier: "gold" as const,
+    logoFile: "mobilis.png",
+    websiteUrl: "https://www.mobilis.dz",
+  },
+  {
+    id: "s2",
+    name: { ar: "سوناطراك", fr: "Sonatrach", en: "Sonatrach" },
+    tier: "gold" as const,
+    logoFile: "sonatrach.png",
+    websiteUrl: "https://www.sonatrach.com",
+  },
+  {
+    id: "s3",
+    name: { ar: "يونيكس", fr: "YONEX", en: "YONEX" },
+    tier: "silver" as const,
+    logoFile: "yonex.png",
+    websiteUrl: "https://www.yonex.com",
+  },
+  {
+    id: "s4",
+    name: { ar: "الخطوط الجوية الجزائرية", fr: "Air Algérie", en: "Air Algérie" },
+    tier: "silver" as const,
+    logoFile: "air algerie.png",
+    websiteUrl: "https://www.airalgerie.dz",
+  },
+  {
+    id: "s5",
+    name: { ar: "بيك", fr: "PEAK", en: "PEAK" },
+    tier: "bronze" as const,
+    logoFile: "peak.png",
+    websiteUrl: "https://www.peaksport.com",
+  },
+  {
+    id: "s6",
+    name: { ar: "BWF", fr: "BWF", en: "BWF" },
+    tier: "bronze" as const,
+    logoFile: "BWF.png",
+    websiteUrl: "https://bwfbadminton.com",
+  },
 ];
 
 export const MOCK_ARTICLES = [

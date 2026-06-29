@@ -15,7 +15,7 @@ export function MultiLangTabs({
 
   return (
     <Tabs defaultValue={defaultTab}>
-      <TabsList>
+      <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1">
         <TabsTrigger value="en">{t.admin.languages.en}</TabsTrigger>
         <TabsTrigger value="fr">{t.admin.languages.fr}</TabsTrigger>
         <TabsTrigger value="ar">{t.admin.languages.ar}</TabsTrigger>

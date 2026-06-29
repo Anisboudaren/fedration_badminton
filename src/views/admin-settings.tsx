@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,6 +38,25 @@ function SettingsAdminPage() {
     },
     onError: () => toast.error("Save failed"),
   });
+
+  const updateContact = (field: keyof SiteSettings["contact"], value: string) => {
+    if (!draft) return;
+    setSettings({
+      ...draft,
+      contact: { ...draft.contact, [field]: value },
+    });
+  };
+
+  const updateContactAddress = (lang: Lang, value: string) => {
+    if (!draft) return;
+    setSettings({
+      ...draft,
+      contact: {
+        ...draft.contact,
+        address: { ...draft.contact.address, [lang]: value },
+      },
+    });
+  };
 
   const onSave = () => {
     if (!draft) return;
@@ -136,6 +156,95 @@ function SettingsAdminPage() {
                 checked={draft.maintenanceMode}
                 onCheckedChange={(checked) => setSettings({ ...draft, maintenanceMode: checked })}
               />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t.admin.settings.contactSection}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <MultiLangTabs>
+            {(lang) => (
+              <div className="space-y-1.5">
+                <Label>{t.admin.settings.contactAddress}</Label>
+                <Textarea
+                  value={draft.contact.address[lang]}
+                  onChange={(e) => updateContactAddress(lang, e.target.value)}
+                  rows={3}
+                  placeholder="Maison des Fédérations&#10;Dely Ibrahim, Algiers&#10;Algeria"
+                />
+              </div>
+            )}
+          </MultiLangTabs>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>{t.admin.settings.email1}</Label>
+              <Input
+                type="email"
+                value={draft.contact.email1}
+                onChange={(e) => updateContact("email1", e.target.value)}
+                placeholder="contact@badminton.dz"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>{t.admin.settings.email2}</Label>
+              <Input
+                type="email"
+                value={draft.contact.email2}
+                onChange={(e) => updateContact("email2", e.target.value)}
+                placeholder="info@badminton.dz"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>{t.admin.settings.phone1}</Label>
+              <Input
+                value={draft.contact.phone1}
+                onChange={(e) => updateContact("phone1", e.target.value)}
+                placeholder="+213 23 25 82 52"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>{t.admin.settings.phone2}</Label>
+              <Input
+                value={draft.contact.phone2}
+                onChange={(e) => updateContact("phone2", e.target.value)}
+                placeholder="+213 23 25 86 10"
+              />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>{t.admin.settings.fax}</Label>
+              <Input
+                value={draft.contact.fax}
+                onChange={(e) => updateContact("fax", e.target.value)}
+                placeholder="+213 ..."
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <Label className="text-sm font-medium">{t.admin.settings.socialSection}</Label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {(
+                [
+                  ["facebook", t.admin.settings.facebook],
+                  ["instagram", t.admin.settings.instagram],
+                  ["youtube", t.admin.settings.youtube],
+                  ["twitter", t.admin.settings.twitter],
+                ] as const
+              ).map(([key, label]) => (
+                <div key={key} className="space-y-1.5">
+                  <Label>{label}</Label>
+                  <Input
+                    value={draft.contact[key]}
+                    onChange={(e) => updateContact(key, e.target.value)}
+                    placeholder="https://..."
+                  />
+                </div>
+              ))}
             </div>
           </div>
         </CardContent>

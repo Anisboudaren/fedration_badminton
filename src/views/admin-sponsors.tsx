@@ -30,6 +30,7 @@ function SponsorsAdminPage() {
       description={t.admin.pages.sponsors.description}
       createEmpty={emptySponsor}
       validate={() => null}
+      getSummary={(item) => t.admin.sponsorTiers[item.tier]}
       renderFormFields={({ draft, setDraft }) => (
         <>
           <div className="grid gap-4 md:grid-cols-3">

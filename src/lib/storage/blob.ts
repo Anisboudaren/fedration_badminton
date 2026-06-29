@@ -101,6 +101,16 @@ export async function uploadFile(file: File, folder: string): Promise<BlobUpload
   const error = validateUploadFile(file);
   if (error) throw new Error(error);
 
+  const ext = file.name.split(".").pop() ?? "bin";
+  const pathname = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  return uploadBuffer(await file.arrayBuffer(), pathname, file.type || "application/octet-stream");
+}
+
+export async function uploadBuffer(
+  data: ArrayBuffer | Buffer,
+  pathname: string,
+  contentType: string,
+): Promise<BlobUploadResult> {
   const token = readBlobToken();
   if (!token) {
     throw new Error(
@@ -108,14 +118,14 @@ export async function uploadFile(file: File, folder: string): Promise<BlobUpload
     );
   }
 
-  const ext = file.name.split(".").pop() ?? "bin";
-  const pathname = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const access = blobAccess();
+  const body = data instanceof Buffer ? data : Buffer.from(new Uint8Array(data));
 
-  const blob = await put(pathname, file, {
+  const blob = await put(pathname, body, {
     access,
     token,
-    contentType: file.type,
+    contentType,
+    allowOverwrite: true,
   });
 
   const storedPath = blob.pathname ?? pathname;

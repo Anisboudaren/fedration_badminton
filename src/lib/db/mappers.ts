@@ -1,3 +1,4 @@
+import { normalizeSiteContactInfo } from "@/lib/data/contact-info";
 import type { Prisma } from "@/generated/prisma/client";
 import type {
   Article,
@@ -377,6 +378,7 @@ export function mapSiteSettings(row: {
   defaultLang: string;
   maintenanceMode: boolean;
   maintenanceMessage: unknown;
+  contactInfo?: unknown;
 }): SiteSettings {
   return {
     heroTitle: toLocalizedText(row.heroTitle),
@@ -384,6 +386,7 @@ export function mapSiteSettings(row: {
     defaultLang: (row.defaultLang as Lang) || "ar",
     maintenanceMode: row.maintenanceMode,
     maintenanceMessage: toLocalizedText(row.maintenanceMessage),
+    contact: normalizeSiteContactInfo(row.contactInfo),
   };
 }
 

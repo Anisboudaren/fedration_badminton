@@ -131,13 +131,13 @@ export function ContentManagerPage<T extends BaseContentItem>({
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-start justify-between gap-3">
-        <div>
-          <CardTitle>{title}</CardTitle>
+    <Card className="overflow-hidden">
+      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <CardTitle className="text-lg sm:text-xl">{title}</CardTitle>
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
-        <Button onClick={openCreate} disabled={isLoading}>
+        <Button onClick={openCreate} disabled={isLoading} className="w-full shrink-0 sm:w-auto">
           <Plus className="h-4 w-4" />
           {t.admin.actions.newItem}
         </Button>
@@ -154,21 +154,22 @@ export function ContentManagerPage<T extends BaseContentItem>({
           </p>
         ) : isEditing ? (
           <>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <Button variant="outline" onClick={cancelEdit}>
-                <ArrowLeft className="h-4 w-4" />
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+              <Button variant="outline" onClick={cancelEdit} className="w-full sm:w-auto">
+                <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
                 {t.admin.actions.backToList}
               </Button>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Button
                   variant="outline"
                   onClick={() => saveDraft("draft")}
                   disabled={saveMutation.isPending}
+                  className="w-full sm:w-auto"
                 >
                   {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   {t.admin.actions.saveDraft}
                 </Button>
-                <Button onClick={() => saveDraft("published")} disabled={saveMutation.isPending}>
+                <Button onClick={() => saveDraft("published")} disabled={saveMutation.isPending} className="w-full sm:w-auto">
                   {t.admin.actions.publish}
                 </Button>
               </div>
@@ -186,15 +187,15 @@ export function ContentManagerPage<T extends BaseContentItem>({
           </p>
         ) : (
           sorted.map((item) => (
-            <div key={item.id} className="rounded-md border p-4 flex flex-wrap items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="font-semibold truncate">{item.title[lang] || item.title.en || item.title.fr || item.title.ar}</p>
-                {getSummary ? <p className="text-xs text-muted-foreground mt-0.5">{getSummary(item)}</p> : null}
-                <p className="text-xs text-muted-foreground mt-1">
+            <div key={item.id} className="flex flex-col gap-3 rounded-md border p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-semibold">{item.title[lang] || item.title.en || item.title.fr || item.title.ar}</p>
+                {getSummary ? <p className="mt-0.5 text-xs text-muted-foreground">{getSummary(item)}</p> : null}
+                <p className="mt-1 text-xs text-muted-foreground">
                   {t.admin.meta.updated}: {new Date(item.updatedAt).toLocaleString()}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Badge variant={item.status === "published" ? "default" : "secondary"}>
                   {item.status === "published" ? t.admin.status.published : t.admin.status.draft}
                 </Badge>

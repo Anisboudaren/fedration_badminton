@@ -130,12 +130,26 @@ export type LicenceRequest = {
   updatedAt: string;
 };
 
+export type SiteContactInfo = {
+  address: LocalizedText;
+  email1: string;
+  email2: string;
+  phone1: string;
+  phone2: string;
+  fax: string;
+  facebook: string;
+  instagram: string;
+  youtube: string;
+  twitter: string;
+};
+
 export type SiteSettings = {
   heroTitle: LocalizedText;
   heroTagline: LocalizedText;
   defaultLang: Lang;
   maintenanceMode: boolean;
   maintenanceMessage: LocalizedText;
+  contact: SiteContactInfo;
 };
 
 export type RankingsPlayer = {

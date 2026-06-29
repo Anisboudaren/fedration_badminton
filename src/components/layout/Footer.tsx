@@ -1,11 +1,9 @@
 "use client";
 
-import { assetUrl } from "@/lib/utils";
 import Link from "next/link";
-import { MapPin, Phone, Mail, Facebook, Instagram, Youtube } from "lucide-react";
-import logo from "@/assets/main logo.png";
+import { LOGO_WHITE_TEXT } from "@/lib/brand-logos";
+import { ContactDetailsList, SocialLinks } from "@/components/layout/ContactLinks";
 import { useI18n } from "@/i18n/I18nProvider";
-import { LtrNum } from "@/components/ui/bidi-text";
 
 export function Footer() {
   const { t } = useI18n();
@@ -22,19 +20,9 @@ export function Footer() {
     <footer className="bg-footer text-footer-foreground">
       <div className="container-px grid grid-cols-1 gap-10 py-14 md:grid-cols-2 lg:grid-cols-4">
         <div className="lg:col-span-1">
-          <img src={assetUrl(logo)} alt="ABF" className="h-14 w-auto" />
+          <img src={LOGO_WHITE_TEXT} alt="ABF" className="h-14 w-auto max-w-[220px]" />
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/70">{t.footer.about}</p>
-          <div className="mt-4 flex gap-2.5">
-            {[Facebook, Instagram, Youtube].map((Icon, i) => (
-              <a
-                key={i}
-                href="#"
-                className="grid h-9 w-9 place-items-center rounded-full border border-white/20 transition hover:border-primary hover:bg-primary"
-              >
-                <Icon className="h-4 w-4" />
-              </a>
-            ))}
-          </div>
+          <SocialLinks className="mt-4" />
         </div>
 
         <div>
@@ -68,20 +56,7 @@ export function Footer() {
 
         <div>
           <h4 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">{t.footer.contact}</h4>
-          <ul className="space-y-3 text-sm text-white/70">
-            <li className="flex gap-2">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              <span className="whitespace-pre-line">{t.footer.address}</span>
-            </li>
-            <li className="flex gap-2">
-              <Phone className="h-4 w-4 shrink-0 text-primary" />
-              <LtrNum value="+213 23 25 82 52" />
-            </li>
-            <li className="flex gap-2">
-              <Mail className="h-4 w-4 shrink-0 text-primary" />
-              <LtrNum value="contact@badminton.dz" />
-            </li>
-          </ul>
+          <ContactDetailsList variant="footer" />
         </div>
       </div>
       <div className="border-t border-white/10">

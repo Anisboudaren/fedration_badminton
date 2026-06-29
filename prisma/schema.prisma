@@ -236,6 +236,7 @@ model SiteSettings {
   defaultLang         String   @default("ar")
   maintenanceMode     Boolean  @default(false)
   maintenanceMessage  Json
+  contactInfo         Json     @default("{}")
   updatedAt           DateTime @updatedAt
 }
 

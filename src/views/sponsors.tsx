@@ -1,6 +1,5 @@
 "use client";
 
-import { assetUrl } from "@/lib/utils";
 import Link from "next/link";
 import { Handshake } from "lucide-react";
 import { PageHero } from "@/components/layout/PageHero";
@@ -9,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/I18nProvider";
 import { pickLocalized } from "@/lib/data/site-data";
+import { sortSponsorsByTier } from "@/lib/data/sponsors";
+import { cmsImageUrl } from "@/lib/storage/blob-url";
 import type { Sponsor } from "@/lib/admin/types";
 import photoWide from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.01.webp";
 
@@ -22,7 +23,7 @@ function SponsorsPage({ initialSponsors }: { initialSponsors: Sponsor[] }) {
   const { t, lang } = useI18n();
   const isFr = lang === "fr";
 
-  const sponsors = initialSponsors;
+  const sponsors = sortSponsorsByTier(initialSponsors);
 
   return (
     <>
@@ -41,8 +42,16 @@ function SponsorsPage({ initialSponsors }: { initialSponsors: Sponsor[] }) {
               key={s.id}
               className="flex flex-col items-center rounded-xl border bg-card p-8 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
             >
-              <div className="mb-4 grid h-20 w-full place-items-center rounded-lg bg-muted text-lg font-bold text-muted-foreground">
-                {s.logoUrl ? <img src={s.logoUrl} alt="" className="max-h-16 object-contain" /> : pickLocalized(s.title, lang)}
+              <div className="mb-4 grid h-20 w-full place-items-center rounded-lg bg-muted px-4">
+                {s.logoUrl ? (
+                  <img
+                    src={cmsImageUrl(s.logoUrl)}
+                    alt={pickLocalized(s.title, lang)}
+                    className="max-h-16 max-w-full object-contain"
+                  />
+                ) : (
+                  <span className="text-lg font-bold text-muted-foreground">{pickLocalized(s.title, lang)}</span>
+                )}
               </div>
               <h3 className="font-semibold">{pickLocalized(s.title, lang)}</h3>
               <Badge
@@ -51,6 +60,16 @@ function SponsorsPage({ initialSponsors }: { initialSponsors: Sponsor[] }) {
               >
                 {isFr ? TIER_LABEL[s.tier].fr : TIER_LABEL[s.tier].ar}
               </Badge>
+              {s.websiteUrl ? (
+                <a
+                  href={s.websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 text-xs font-medium text-primary hover:underline"
+                >
+                  {isFr ? "Visiter le site" : "زيارة الموقع"}
+                </a>
+              ) : null}
             </article>
           ))}
         </div>

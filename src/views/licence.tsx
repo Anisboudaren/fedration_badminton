@@ -9,9 +9,6 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
-  FileText,
-  IdCard,
-  Stethoscope,
   Upload,
   User,
   Users,
@@ -35,8 +32,6 @@ import { toast } from "sonner";
 
 type L = { en: string; fr: string; ar: string };
 const t3 = (o: L, lang: string) => (lang === "ar" ? o.ar : lang === "fr" ? o.fr : o.en);
-
-const hasFiles = (files: FileList | undefined) => Boolean(files?.length && files.length > 0);
 
 const COPY = {
   title: { en: "Licence application", fr: "Demande de licence", ar: "طلب رخصة" },
@@ -76,9 +71,14 @@ const COPY = {
     ar: "تم تسجيل طلبكم. ستصلكم رسالة تأكيد بعد مراجعة الاتحادية.",
   },
   submitError: {
-    en: "Could not submit. Check your documents and try again.",
-    fr: "Envoi impossible. Vérifiez vos documents et réessayez.",
-    ar: "تعذّر الإرسال. تحققوا من الوثائق وحاولوا مجدداً.",
+    en: "Could not submit. Check your details and try again.",
+    fr: "Envoi impossible. Vérifiez vos informations et réessayez.",
+    ar: "تعذّر الإرسال. تحققوا من معلوماتكم وحاولوا مجدداً.",
+  },
+  photoRequired: {
+    en: "Please upload your passport photo before submitting.",
+    fr: "Veuillez téléverser votre photo d'identité avant l'envoi.",
+    ar: "يرجى رفع الصورة الشخصية قبل الإرسال.",
   },
   submitting: { en: "Submitting…", fr: "Envoi en cours…", ar: "جاري الإرسال…" },
   newRequest: { en: "New application", fr: "Nouvelle demande", ar: "طلب جديد" },
@@ -88,9 +88,14 @@ const COPY = {
     ar: "راجعوا معلوماتكم قبل الإرسال. يمكنكم الرجوع لتعديل أي خطوة.",
   },
   docsHint: {
-    en: "Upload clear scans or photos (PDF, JPG, PNG · max 5 MB each).",
-    fr: "Téléversez des scans ou photos lisibles (PDF, JPG, PNG · max 5 Mo).",
-    ar: "ارفعوا نسخاً واضحة (PDF، JPG، PNG · 5 ميغا كحد أقصى).",
+    en: "Upload a passport-style photo (JPG or PNG · max 5 MB). Other documents can be sent later if needed.",
+    fr: "Téléversez une photo d'identité (JPG ou PNG · max 5 Mo). Les autres pièces pourront suivre si besoin.",
+    ar: "ارفعوا صورة شخصية (JPG أو PNG · 5 ميغا كحد أقصى). يمكن تقديم باقي الوثائق لاحقاً عند الحاجة.",
+  },
+  photoOnlyNote: {
+    en: "Only your photo is required at this step.",
+    fr: "Seule la photo est obligatoire à cette étape.",
+    ar: "الصورة الشخصية فقط مطلوبة في هذه الخطوة.",
   },
   requirements: {
     en: "See full licence requirements",
@@ -136,25 +141,26 @@ const schema = z.object({
   antiDoping: z.custom<FileList | undefined>(),
   idDoc: z.custom<FileList | undefined>(),
   diploma: z.custom<FileList | undefined>(),
-}).superRefine((data, ctx) => {
-  const requireFile = (field: keyof FormValues, when = true) => {
-    if (!when) return;
-    if (!hasFiles(data[field] as FileList | undefined)) {
-      ctx.addIssue({ code: "custom", message: "required", path: [field] });
-    }
-  };
-  requireFile("photo");
-  requireFile("birthCert");
-  requireFile("medical");
-  requireFile("diploma", data.licenceType === "coach");
 });
 
 type FormValues = z.infer<typeof schema>;
 
+const TEXT_FIELDS: (keyof FormValues)[] = [
+  "licenceType",
+  "fullName",
+  "birthDate",
+  "gender",
+  "wilaya",
+  "club",
+  "category",
+  "phone",
+  "email",
+];
+
 const STEP_FIELDS: (keyof FormValues)[][] = [
   ["licenceType", "fullName", "birthDate", "gender"],
   ["wilaya", "club", "category", "phone", "email"],
-  ["photo", "birthCert", "medical", "antiDoping", "idDoc", "diploma"],
+  ["photo"],
   [],
 ];
 
@@ -166,6 +172,7 @@ function LicencePage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const stepTopRef = useRef<HTMLDivElement>(null);
   const skipInitialScroll = useRef(true);
+  const photoFileRef = useRef<File | null>(null);
 
   useEffect(() => {
     if (skipInitialScroll.current) {
@@ -210,6 +217,19 @@ function LicencePage() {
   };
 
   const goNext = async () => {
+    if (step === 2) {
+      const photo = photoFileRef.current ?? getValues("photo")?.[0] ?? null;
+      if (!photo) {
+        form.setError("photo", { type: "manual", message: "required" });
+        return;
+      }
+      photoFileRef.current = photo;
+      form.clearErrors("photo");
+      setSubmitError(null);
+      setStep((s) => Math.min(s + 1, COPY.steps.length - 1));
+      return;
+    }
+
     const fields = STEP_FIELDS[step];
     const valid = fields.length === 0 || (await trigger(fields));
     if (!valid) return;
@@ -217,30 +237,57 @@ function LicencePage() {
     setStep((s) => Math.min(s + 1, COPY.steps.length - 1));
   };
 
+  const submitApplication = async () => {
+    setSubmitError(null);
+
+    const valid = await trigger(TEXT_FIELDS);
+    if (!valid) {
+      const fieldErrors = form.formState.errors;
+      if (fieldErrors.licenceType || fieldErrors.fullName || fieldErrors.birthDate || fieldErrors.gender) {
+        setStep(0);
+      } else if (
+        fieldErrors.wilaya ||
+        fieldErrors.club ||
+        fieldErrors.category ||
+        fieldErrors.phone ||
+        fieldErrors.email
+      ) {
+        setStep(1);
+      }
+      setSubmitError(
+        lang === "ar"
+          ? "يرجى تصحيح الحقول المطلوبة"
+          : lang === "fr"
+            ? "Veuillez corriger les champs obligatoires"
+            : "Please fix the required fields",
+      );
+      return;
+    }
+
+    const photo = photoFileRef.current ?? getValues("photo")?.[0] ?? null;
+    if (!photo) {
+      form.setError("photo", { type: "manual", message: "required" });
+      setSubmitError(t3(COPY.photoRequired, lang));
+      setStep(2);
+      return;
+    }
+
+    await onSubmit(getValues(), photo);
+  };
+
   const goBack = () => {
     setSubmitError(null);
     setStep((s) => Math.max(s - 1, 0));
   };
 
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = async (values: FormValues, photoFile: File) => {
     setIsSubmitting(true);
     setSubmitError(null);
 
     const requestId = createId();
-    const uploadDoc = async (files: FileList | undefined, docType: string) => {
-      if (!files?.[0]) return undefined;
-      return uploadImage(files[0], `licence-requests/${requestId}/${docType}`);
-    };
 
     try {
-      const documents = {
-        photo: await uploadDoc(values.photo, "photo"),
-        birthCert: await uploadDoc(values.birthCert, "birth-cert"),
-        medical: await uploadDoc(values.medical, "medical"),
-        antiDoping: await uploadDoc(values.antiDoping, "anti-doping"),
-        idDoc: await uploadDoc(values.idDoc, "id"),
-        diploma: await uploadDoc(values.diploma, "diploma"),
-      };
+      const photoUrl = await uploadImage(photoFile, `licence-requests/${requestId}/photo`);
 
       await submitLicenceRequest({
         licenceType: values.licenceType,
@@ -252,13 +299,14 @@ function LicencePage() {
         category: values.category,
         phone: values.phone,
         email: values.email,
-        documents,
+        documents: { photo: photoUrl },
         status: "pending",
         adminNotes: "",
         submittedAt: new Date().toISOString(),
       });
       setSubmitted(true);
       setStep(0);
+      photoFileRef.current = null;
       form.reset();
       toast.success(t3(COPY.successTitle, lang));
     } catch (error) {
@@ -341,7 +389,7 @@ function LicencePage() {
             if (step < COPY.steps.length - 1) {
               void goNext();
             } else {
-              void form.handleSubmit(onSubmit)(e);
+              void submitApplication();
             }
           }}
         >
@@ -516,58 +564,24 @@ function LicencePage() {
 
               {/* Step 3 — Documents */}
               {step === 2 && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                  <DocChecklist lang={lang} licenceType={licenceType} />
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <UploadField
-                      label={t3(COPY.photo, lang)}
-                      name="photo"
-                      required
-                      register={register}
-                      error={err("photo")}
-                      icon={User}
-                    />
-                    <UploadField
-                      label={t3(COPY.birthCert, lang)}
-                      name="birthCert"
-                      required
-                      register={register}
-                      error={err("birthCert")}
-                      icon={FileText}
-                    />
-                    <UploadField
-                      label={t3(COPY.medical, lang)}
-                      name="medical"
-                      required
-                      register={register}
-                      error={err("medical")}
-                      icon={Stethoscope}
-                    />
-                    <UploadField
-                      label={t3(COPY.antiDoping, lang)}
-                      name="antiDoping"
-                      register={register}
-                      error={err("antiDoping")}
-                      icon={FileText}
-                    />
-                    <UploadField
-                      label={t3(COPY.idDoc, lang)}
-                      name="idDoc"
-                      register={register}
-                      error={err("idDoc")}
-                      icon={IdCard}
-                    />
-                    {licenceType === "coach" && (
-                      <UploadField
-                        label={t3(COPY.diploma, lang)}
-                        name="diploma"
-                        required
-                        register={register}
-                        error={err("diploma")}
-                        icon={FileText}
+                <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <p className="text-sm text-muted-foreground">{t3(COPY.docsHint, lang)}</p>
+                  <p className="text-xs font-medium text-primary">{t3(COPY.photoOnlyNote, lang)}</p>
+                  <Controller
+                    name="photo"
+                    control={control}
+                    render={({ field }) => (
+                      <PhotoUploadField
+                        label={t3(COPY.photo, lang)}
+                        value={field.value}
+                        onChange={(files) => {
+                          field.onChange(files);
+                          photoFileRef.current = files?.[0] ?? null;
+                        }}
+                        error={err("photo")}
                       />
                     )}
-                  </div>
+                  />
                 </div>
               )}
 
@@ -575,7 +589,11 @@ function LicencePage() {
               {step === 3 && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                   <p className="text-sm text-muted-foreground">{t3(COPY.reviewNote, lang)}</p>
-                  <ReviewSection lang={lang} values={getValues()} />
+                  <ReviewSection
+                    lang={lang}
+                    values={getValues()}
+                    photoName={photoFileRef.current?.name ?? getValues("photo")?.[0]?.name}
+                  />
                 </div>
               )}
             </CardContent>
@@ -630,68 +648,57 @@ function Field({
   );
 }
 
-function UploadField({
+function PhotoUploadField({
   label,
-  name,
-  register,
-  required,
+  value,
+  onChange,
   error,
-  icon: Icon,
 }: {
   label: string;
-  name: keyof FormValues;
-  register: ReturnType<typeof useForm<FormValues>>["register"];
-  required?: boolean;
+  value: FileList | undefined;
+  onChange: (files: FileList | undefined) => void;
   error?: string | null;
-  icon: React.ComponentType<{ className?: string }>;
 }) {
-  const [fileName, setFileName] = useState<string | null>(null);
-  const { onChange, ...rest } = register(name);
+  const fileName = value?.[0]?.name ?? null;
 
   return (
-    <div className="space-y-1.5">
-      <Label htmlFor={name} className="text-sm font-medium">
-        {label}
-        {required ? " *" : ""}
-      </Label>
+    <div className="mx-auto max-w-sm space-y-1.5">
+      <Label className="text-sm font-medium">{label} *</Label>
       <label
-        htmlFor={name}
+        htmlFor="licence-photo"
         className={cn(
-          "group flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-4 py-6 text-center transition",
+          "group flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-6 py-10 text-center transition",
           fileName ? "border-primary/40 bg-primary/5" : "border-border bg-muted/20 hover:border-primary/40 hover:bg-muted/40",
+          error && "border-destructive",
         )}
       >
         {fileName ? (
           <>
-            <FileText className="mb-2 h-6 w-6 text-primary" />
-            <span className="line-clamp-2 text-xs font-medium text-foreground">{fileName}</span>
-            <span className="mt-1 text-[10px] text-muted-foreground">PNG, JPG, PDF · max 5MB</span>
+            <User className="mb-2 h-8 w-8 text-primary" />
+            <span className="line-clamp-2 text-sm font-medium text-foreground">{fileName}</span>
+            <span className="mt-1 text-xs text-muted-foreground">JPG, PNG · max 5MB</span>
           </>
         ) : (
           <>
-            <Icon className="mb-2 h-6 w-6 text-muted-foreground transition group-hover:text-primary" />
-            <Upload className="mb-1 h-4 w-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">PNG, JPG, PDF · max 5MB</span>
+            <User className="mb-2 h-8 w-8 text-muted-foreground transition group-hover:text-primary" />
+            <Upload className="mb-2 h-5 w-5 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">JPG, PNG · max 5MB</span>
           </>
         )}
         <input
-          id={name}
+          id="licence-photo"
           type="file"
           className="hidden"
-          accept="image/*,.pdf"
-          {...rest}
-          onChange={(e) => {
-            onChange(e);
-            setFileName(e.target.files?.[0]?.name ?? null);
-          }}
+          accept="image/jpeg,image/png,image/webp"
+          onChange={(e) => onChange(e.target.files ?? undefined)}
         />
       </label>
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {error ? <p className="text-xs text-destructive text-center">{error}</p> : null}
       {fileName ? (
         <button
           type="button"
-          className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-destructive"
-          onClick={() => setFileName(null)}
+          className="mx-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive"
+          onClick={() => onChange(undefined)}
         >
           <X className="h-3 w-3" /> Remove
         </button>
@@ -700,30 +707,15 @@ function UploadField({
   );
 }
 
-function DocChecklist({ lang, licenceType }: { lang: string; licenceType: string }) {
-  const items =
-    licenceType === "coach"
-      ? [COPY.photo, COPY.birthCert, COPY.medical, COPY.diploma]
-      : [COPY.photo, COPY.birthCert, COPY.medical, COPY.antiDoping];
-
-  return (
-    <div className="rounded-xl border border-primary/15 bg-primary/5 p-4">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-primary">
-        {lang === "ar" ? "الوثائق المطلوبة" : lang === "fr" ? "Documents requis" : "Required documents"}
-      </p>
-      <ul className="space-y-1.5">
-        {items.map((item, i) => (
-          <li key={i} className="flex items-center gap-2 text-sm text-foreground/90">
-            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" />
-            {t3(item, lang)}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function ReviewSection({ lang, values }: { lang: string; values: FormValues }) {
+function ReviewSection({
+  lang,
+  values,
+  photoName,
+}: {
+  lang: string;
+  values: FormValues;
+  photoName?: string;
+}) {
   const wilaya = WILAYAS.find((w) => w.code === values.wilaya);
   const category = CATEGORIES.find((c) => c.value === values.category);
 
@@ -737,6 +729,7 @@ function ReviewSection({ lang, values }: { lang: string; values: FormValues }) {
     { label: COPY.category, value: category ? t3(category.label, lang) : "—" },
     { label: COPY.phone, value: values.phone },
     { label: COPY.email, value: values.email },
+    { label: COPY.photo, value: photoName ?? "—" },
   ];
 
   return (

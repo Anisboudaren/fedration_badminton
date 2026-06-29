@@ -108,24 +108,24 @@ function AdminDashboardPage() {
   }));
 
   return (
-    <div className="mx-auto w-full max-w-[1600px] space-y-6 lg:space-y-8">
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 sm:space-y-6 lg:space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
+        <div className="min-w-0">
           <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
             <Sparkles className="size-3.5" />
             CMS
           </div>
-          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{t.admin.dashboard.title}</h2>
+          <h2 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">{t.admin.dashboard.title}</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground sm:text-base">{t.admin.dashboard.subtitle}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button asChild size="sm">
+        <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
+          <Button asChild size="sm" className="w-full sm:w-auto">
             <Link href="/admin/articles">
               <Plus className="size-4" />
               {t.admin.dashboard.newArticle}
             </Link>
           </Button>
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
             <Link href="/admin/events">
               <Plus className="size-4" />
               {t.admin.dashboard.newEvent}
@@ -175,8 +175,8 @@ function AdminDashboardPage() {
         </div>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-5 lg:gap-6">
-        <Card className="border-border/60 shadow-sm lg:col-span-2">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6">
+        <Card className="border-border/60 shadow-sm min-w-0">
           <CardHeader>
             <CardTitle className="text-base">{t.admin.dashboard.quickActions}</CardTitle>
             <CardDescription>{t.admin.dashboard.subtitle}</CardDescription>
@@ -203,7 +203,7 @@ function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/60 shadow-sm lg:col-span-3">
+        <Card className="border-border/60 shadow-sm min-w-0">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Clock className="size-4 text-muted-foreground" />

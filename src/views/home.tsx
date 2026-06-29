@@ -13,15 +13,18 @@ import {
   ZoomIn,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   X,
 } from "lucide-react";
 import { useI18n } from "@/i18n/I18nProvider";
 import { pickLocalized } from "@/lib/data/site-data";
 import type { HomePageData } from "@/lib/data/site-data.server";
 import { cmsImageUrl } from "@/lib/storage/blob-url";
+import { sortSponsorsByTier } from "@/lib/data/sponsors";
 import { BidiText, LtrNum } from "@/components/ui/bidi-text";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import logo from "@/assets/main logo.png";
+import { LOGO_DARK_TEXT, LOGO_WHITE_TEXT } from "@/lib/brand-logos";
+import heroBg from "@/assets/hero-badminton.jpg";
 
 import brandTogether from "@/assets/branded images/ABF together we play.webp";
 import brandAbf1 from "@/assets/branded images/ABF 1.webp";
@@ -181,7 +184,7 @@ function Home({ initialData }: { initialData: HomePageData }) {
     id: a.id,
   }));
 
-  const events = initialData.upcomingEvents.slice(0, 3).map((e) => {
+  const events = initialData.upcomingEvents.map((e) => {
     const start = new Date(e.startDate);
     const end = new Date(e.endDate);
     return {
@@ -205,51 +208,65 @@ function Home({ initialData }: { initialData: HomePageData }) {
     .map((m) => cmsImageUrl(m.imageUrl!))
     .slice(0, 8);
 
-  const sponsors = initialData.sponsors;
+  const sponsors = sortSponsorsByTier(initialData.sponsors);
   const matchResults = initialData.matchResults.slice(0, 6);
 
   return (
     <>
-      {/* HERO */}
-      <section className="relative flex min-h-[min(72vh,640px)] items-center overflow-hidden bg-footer sm:min-h-[min(68vh,600px)] md:min-h-[min(64vh,560px)]">
-        <img src={assetUrl(photoAction1)} alt="" className="absolute inset-0 h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-b from-footer/90 via-footer/75 to-footer/85" />
-        <div className="absolute inset-0 bg-gradient-to-r from-footer/80 to-transparent rtl:bg-gradient-to-l" />
+      {/* HERO — full viewport, centered logo, header overlays via fixed transparent nav */}
+      <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-footer">
+        <img src={assetUrl(heroBg)} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-footer/92 via-footer/70 to-footer/88" />
+        <div className="absolute inset-0 bg-gradient-to-r from-footer/85 via-footer/40 to-footer/60 rtl:bg-gradient-to-l" />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-30"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 20% 50%, oklch(0.42 0.13 152 / 0.35) 0%, transparent 50%), radial-gradient(circle at 80% 30%, oklch(0.6 0.22 28 / 0.2) 0%, transparent 45%)",
+          }}
+        />
 
-        <div className="relative container-px w-full py-12 sm:py-14 md:py-16">
-          <div className="mx-auto max-w-2xl text-center text-white md:mx-0 md:max-w-xl md:text-start">
-            <img src={assetUrl(logo)} alt="ABF" className="mx-auto h-20 w-auto sm:h-24 md:mx-0 md:h-28" />
-            <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.2em] text-white/70 sm:text-xs">
-              {hero.tagline}
-            </p>
-            <h1 className="mt-3 text-2xl font-bold leading-tight sm:text-3xl md:text-4xl lg:text-[2.5rem]">
-              {hero.title}
-            </h1>
-            <div className="mt-6 flex flex-wrap justify-center gap-2.5 md:justify-start">
-              <Link
-                href="/contact"
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-semibold uppercase tracking-wide shadow-lg shadow-primary/25 transition hover:bg-primary-dark sm:px-6 sm:py-3 sm:text-sm"
-              >
-                {t.hero.cta} <ArrowRight className="h-4 w-4 rtl:rotate-180" />
-              </Link>
-              <Link
-                href="/news"
-                className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 py-2.5 text-xs font-semibold uppercase tracking-wide backdrop-blur transition hover:bg-white/20 sm:px-6 sm:py-3 sm:text-sm"
-              >
-                {t.hero.ctaSecondary}
-              </Link>
-            </div>
-          </div>
+        <div className="relative z-10 container-px flex w-full flex-col items-center px-4 pb-16 pt-28 text-center text-white sm:pt-32 md:pt-36">
+          <img
+            src={LOGO_WHITE_TEXT}
+            alt="ABF"
+            className="h-36 w-auto max-w-[min(92vw,420px)] drop-shadow-2xl sm:h-44 md:h-52 lg:h-60"
+          />
+          <h1 className="mt-8 max-w-3xl text-xl font-bold leading-snug sm:text-2xl md:text-3xl lg:text-4xl">
+            {hero.title || t.hero.title}
+          </h1>
+          <Link
+            href="/about"
+            className="mt-8 inline-flex items-center gap-2 rounded-md bg-primary px-8 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-primary/30 transition hover:bg-primary-dark sm:text-sm"
+          >
+            {t.hero.cta}
+            <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+          </Link>
         </div>
+
+        <a
+          href="#home-content"
+          onClick={(e) => {
+            e.preventDefault();
+            document.getElementById("home-content")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+          className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2 rounded-full px-3 py-1 text-white/75 transition hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+          aria-label={t.hero.scrollHint}
+        >
+          <span className="text-[10px] font-semibold uppercase tracking-[0.22em]">{t.hero.scrollHint}</span>
+          <span className="flex h-9 w-6 items-start justify-center rounded-full border-2 border-white/40 p-1">
+            <ChevronDown className="h-4 w-4 animate-bounce" aria-hidden />
+          </span>
+        </a>
       </section>
 
       {/* NEWS (2/3) + EVENTS (1/3) */}
-      <section className="container-px py-12 md:py-16">
-        <div className="grid gap-8 lg:grid-cols-3 lg:items-start lg:gap-8">
-          <div className="lg:col-span-2">
+      <section id="home-content" className="container-px scroll-mt-24 py-12 md:py-16">
+        <div className="grid gap-8 lg:grid-cols-3 lg:items-stretch lg:gap-0">
+          <div className="flex flex-col border-b border-border/70 pb-8 lg:col-span-2 lg:border-b-0 lg:border-e lg:pb-0 lg:pe-8">
             <SectionHeader title={t.sections.news} href="/news" linkLabel={t.sections.newsAll} icon={Newspaper} />
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid flex-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-1">
               {news.length === 0 ? (
                 <p className="col-span-full text-sm text-muted-foreground">{t.news.all}</p>
               ) : (
@@ -257,9 +274,9 @@ function Home({ initialData }: { initialData: HomePageData }) {
                   <Link
                     key={n.id}
                     href={`/preview/article/${n.id}`}
-                    className="group flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm transition hover:border-primary/25 hover:shadow-md"
+                    className="group flex h-full min-h-[240px] flex-col overflow-hidden rounded-lg border border-border/60 bg-card shadow-sm transition hover:border-primary/25 hover:shadow-md sm:min-h-[260px] lg:min-h-0"
                   >
-                    <div className="aspect-[16/10] overflow-hidden bg-muted">
+                    <div className="min-h-[140px] flex-[1.35] overflow-hidden bg-muted sm:min-h-[150px]">
                       <img
                         loading="lazy"
                         src={n.img}
@@ -267,9 +284,9 @@ function Home({ initialData }: { initialData: HomePageData }) {
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                       />
                     </div>
-                    <div className="flex flex-1 flex-col p-3.5">
+                    <div className="flex flex-col justify-center p-4">
                       <span className="text-[10px] font-semibold uppercase tracking-wide text-primary">{n.date}</span>
-                      <h3 className="mt-1 line-clamp-2 text-sm font-semibold leading-snug transition group-hover:text-primary">
+                      <h3 className="mt-1.5 line-clamp-3 text-sm font-semibold leading-snug transition group-hover:text-primary">
                         {pickLocalized(n.title, lang)}
                       </h3>
                     </div>
@@ -279,10 +296,10 @@ function Home({ initialData }: { initialData: HomePageData }) {
             </div>
           </div>
 
-          <div>
+          <div className="flex flex-col lg:ps-8">
             <SectionHeader title={t.sections.events} href="/events" linkLabel={t.sections.eventsAll} icon={Calendar} />
 
-            <div className="space-y-3">
+            <div className="flex flex-1 flex-col justify-start space-y-3">
               {events.length === 0 ? (
                 <p className="text-sm text-muted-foreground">—</p>
               ) : (
@@ -290,15 +307,15 @@ function Home({ initialData }: { initialData: HomePageData }) {
                   <Link
                     key={i}
                     href="/events"
-                  className="group relative block overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+                  className="group relative block overflow-hidden rounded-lg border border-border/60 bg-card shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
                 >
                   <div className="absolute inset-y-0 start-0 w-1 bg-primary transition-all group-hover:w-1.5" />
                   <div className="flex gap-3 p-3.5">
-                    <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <span className="text-lg font-bold leading-none">
+                    <div className="flex h-12 w-12 shrink-0 flex-col-reverse items-center justify-center rounded-lg bg-primary text-white shadow-sm">
+                      <span className="text-lg font-bold leading-none text-white">
                         <LtrNum value={e.day} />
                       </span>
-                      <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wider">
+                      <span className="mb-0.5 text-[8px] font-bold uppercase leading-none tracking-wider text-white/90">
                         {t.months[e.month]}
                       </span>
                     </div>
@@ -427,18 +444,39 @@ function Home({ initialData }: { initialData: HomePageData }) {
             {sponsors.length === 0 ? (
               <p className="col-span-full text-sm text-muted-foreground">—</p>
             ) : (
-              sponsors.map((p) => (
-                <div
-                  key={p.id}
-                  className="flex h-12 items-center justify-center rounded-xl border border-border/80 bg-background text-xs font-bold text-muted-foreground shadow-sm transition hover:border-primary/30 hover:text-primary md:h-14 md:text-sm"
-                >
-                  {p.logoUrl ? (
-                    <img src={cmsImageUrl(p.logoUrl)} alt={pickLocalized(p.title, lang)} className="max-h-8 max-w-full object-contain px-2" />
-                  ) : (
-                    pickLocalized(p.title, lang)
-                  )}
-                </div>
-              ))
+              sponsors.map((p) => {
+                const logo = p.logoUrl ? cmsImageUrl(p.logoUrl) : null;
+                const label = pickLocalized(p.title, lang);
+                const inner = (
+                  <>
+                    {logo ? (
+                      <img src={logo} alt={label} className="max-h-10 max-w-full object-contain px-2 md:max-h-12" />
+                    ) : (
+                      <span className="px-2 text-center text-xs font-bold">{label}</span>
+                    )}
+                  </>
+                );
+
+                const className =
+                  "flex h-14 items-center justify-center rounded-lg border border-border/80 bg-background shadow-sm transition hover:border-primary/30 hover:shadow-md md:h-16";
+
+                return p.websiteUrl ? (
+                  <a
+                    key={p.id}
+                    href={p.websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={className}
+                    title={label}
+                  >
+                    {inner}
+                  </a>
+                ) : (
+                  <div key={p.id} className={className} title={label}>
+                    {inner}
+                  </div>
+                );
+              })
             )}
           </div>
         </div>

@@ -145,12 +145,26 @@ export const archiveYearSchema = z.object({
   updatedAt: z.string().optional(),
 });
 
+export const siteContactInfoSchema = z.object({
+  address: localizedTextSchema,
+  email1: z.string(),
+  email2: z.string(),
+  phone1: z.string(),
+  phone2: z.string(),
+  fax: z.string(),
+  facebook: z.string(),
+  instagram: z.string(),
+  youtube: z.string(),
+  twitter: z.string(),
+});
+
 export const siteSettingsSchema = z.object({
   heroTitle: localizedTextSchema,
   heroTagline: localizedTextSchema,
   defaultLang: z.enum(["en", "fr", "ar"]),
   maintenanceMode: z.boolean(),
   maintenanceMessage: localizedTextSchema,
+  contact: siteContactInfoSchema,
 });
 
 export const licenceRequestSchema = z.object({
