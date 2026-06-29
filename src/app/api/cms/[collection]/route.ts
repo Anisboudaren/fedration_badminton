@@ -7,10 +7,7 @@ import {
 } from "@/lib/api/cms-route";
 import {
   createCollectionItem,
-  deleteCollectionItem,
-  getCollectionItem,
   listCollection,
-  updateCollectionItem,
 } from "@/lib/api/cms-service";
 import { validateCollectionBody } from "@/lib/api/validate-collection";
 

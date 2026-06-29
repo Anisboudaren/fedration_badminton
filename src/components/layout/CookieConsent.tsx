@@ -1,17 +1,14 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useI18n } from "@/i18n/I18nProvider";
 
 const STORAGE_KEY = "abf-cookie-consent";
 
 export function CookieConsent() {
   const { t } = useI18n();
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    setVisible(!stored);
-  }, []);
+  const [visible, setVisible] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !window.localStorage.getItem(STORAGE_KEY);
+  });
 
   const saveChoice = (value: "accepted" | "rejected") => {
     if (typeof window !== "undefined") {

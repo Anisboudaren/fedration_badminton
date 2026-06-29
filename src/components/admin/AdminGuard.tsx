@@ -7,13 +7,9 @@ import { AdminLoader } from "./AdminLoader";
 
 export function AdminGuard({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const [authed, setAuthed] = useState<boolean | null>(() =>
+  const [authed] = useState<boolean | null>(() =>
     typeof window === "undefined" ? null : isAuthenticated(),
   );
-
-  useEffect(() => {
-    setAuthed(isAuthenticated());
-  }, []);
 
   useEffect(() => {
     if (authed === false) router.replace("/admin/login");

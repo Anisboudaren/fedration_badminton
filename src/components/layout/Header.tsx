@@ -16,27 +16,23 @@ const SCROLL_THRESHOLD = 72;
 export function Header() {
   const { t } = useI18n();
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [openForPath, setOpenForPath] = useState<string | null>(null);
+  const [homeScrollY, setHomeScrollY] = useState(0);
 
   const isHome = pathname === "/";
+  const open = openForPath === pathname;
+  const setOpen = (next: boolean) => setOpenForPath(next ? pathname : null);
+  const scrolled = isHome && homeScrollY > SCROLL_THRESHOLD;
   const overlay = isHome && !scrolled;
 
   useEffect(() => {
-    if (!isHome) {
-      setScrolled(false);
-      return;
-    }
+    if (!isHome) return;
 
-    const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
+    const onScroll = () => setHomeScrollY(window.scrollY);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [isHome]);
-
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
 
   useEffect(() => {
     if (!open) return;

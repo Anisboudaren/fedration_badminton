@@ -1,4 +1,4 @@
-import { assertWriteAllowed, jsonError, jsonOk, readJsonBody } from "@/lib/api/cms-route";
+import { jsonError, jsonOk, readJsonBody } from "@/lib/api/cms-route";
 import { licenceRequestSchema } from "@/lib/api/schemas";
 import { createLicenceRequest, listLicenceRequests } from "@/lib/db/repositories/licence-requests";
 

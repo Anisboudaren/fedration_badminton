@@ -33,15 +33,6 @@ export function I18nProvider({
   const [siteSettings] = useState<SiteSettings>(settings);
   const [lang, setLangState] = useState<Lang>(() => getInitialLang(settings));
 
-  useEffect(() => {
-    const saved = localStorage.getItem("abf-lang") as Lang | null;
-    if (saved && LANGS.some((l) => l.code === saved)) {
-      setLangState(saved);
-    } else {
-      setLangState(settings.defaultLang);
-    }
-  }, [settings.defaultLang]);
-
   const dir = LANGS.find((l) => l.code === lang)?.dir ?? "ltr";
 
   useEffect(() => {

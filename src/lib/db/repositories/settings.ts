@@ -2,7 +2,8 @@ import prisma from "@/lib/prisma";
 import type { RankingsData, SiteSettings } from "@/lib/admin/types";
 import { defaultSiteSettings } from "@/lib/admin/content-store";
 import { fromLocalizedText, mapRankingsData, mapSiteSettings } from "@/lib/db/mappers";
-import { normalizeSiteContactInfo, contactInfoToJson } from "@/lib/data/contact-info";
+import { contactInfoToJson } from "@/lib/data/contact-info";
+import { seedRankings } from "@/lib/admin/seed-data";
 import { sortRankingsData } from "@/lib/data/rankings";
 
 export async function getSiteSettings(): Promise<SiteSettings> {
