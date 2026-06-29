@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { LOGO_DARK_TEXT, LOGO_WHITE_TEXT } from "@/lib/brand-logos";
 import { LangSwitcher } from "@/components/layout/LangSwitcher";
@@ -10,30 +10,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useI18n } from "@/i18n/I18nProvider";
-import { isAuthenticated, login } from "@/lib/admin/auth";
+import { login, type LoginErrorCode } from "@/lib/admin/auth";
 import { cn, assetUrl } from "@/lib/utils";
-
-type LoginErrorKey = "email_required" | "password_required" | "client_only" | "unknown";
 
 function AdminLoginPage() {
   const router = useRouter();
   const { t, dir } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorKey, setErrorKey] = useState<LoginErrorKey | null>(null);
+  const [errorKey, setErrorKey] = useState<LoginErrorCode | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (isAuthenticated()) router.push("/admin");
-  }, [router]);
-
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = login(email, password);
+    setSubmitting(true);
+    setErrorKey(null);
+    const result = await login(email, password);
+    setSubmitting(false);
     if (!result.ok) {
-      setErrorKey((result.error as LoginErrorKey | undefined) ?? "unknown");
+      setErrorKey(result.error);
       return;
     }
-    router.push("/admin" );
+    router.replace("/admin");
   };
 
   return (
@@ -136,7 +134,7 @@ function AdminLoginPage() {
                     {t.admin.login.errors[errorKey] ?? t.admin.login.errors.unknown}
                   </p>
                 ) : null}
-                <Button className="h-11 w-full text-sm font-semibold" type="submit">
+                <Button className="h-11 w-full text-sm font-semibold" type="submit" disabled={submitting}>
                   {t.admin.login.submit}
                 </Button>
               </form>

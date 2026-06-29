@@ -1,3 +1,4 @@
+import { assertWriteAllowed, jsonError } from "@/lib/api/cms-route";
 import { NextResponse } from "next/server";
 import { uploadFile } from "@/lib/storage/blob";
 
@@ -7,6 +8,11 @@ export async function POST(request: Request) {
     const file = form.get("file");
     const folder = (form.get("folder") as string) || "uploads";
 
+    const isPublicLicenceUpload = folder.startsWith("licence-requests/");
+    if (!isPublicLicenceUpload) {
+      await assertWriteAllowed();
+    }
+
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
@@ -15,6 +21,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ url, pathname });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Upload failed";
-    return NextResponse.json({ error: message }, { status: 400 });
+    const status = message === "Unauthorized" ? 401 : 400;
+    return NextResponse.json({ error: message }, { status });
   }
 }

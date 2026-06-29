@@ -1,4 +1,4 @@
-import { assertWriteAllowed, jsonError, jsonOk, readJsonBody } from "@/lib/api/cms-route";
+import { assertAdminAuth, assertWriteAllowed, jsonError, jsonOk, readJsonBody } from "@/lib/api/cms-route";
 import { getLicenceRequestById, updateLicenceRequest } from "@/lib/db/repositories/licence-requests";
 import { z } from "zod";
 
@@ -10,15 +10,21 @@ const patchSchema = z.object({
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
-  const { id } = await params;
+  try {
+    await assertAdminAuth();
+    const { id } = await params;
   const item = await getLicenceRequestById(id);
   if (!item) return jsonError("Not found", 404);
   return jsonOk(item);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unauthorized";
+    return jsonError(message, message === "Unauthorized" ? 401 : 500);
+  }
 }
 
 export async function PATCH(request: Request, { params }: Params) {
   try {
-    assertWriteAllowed();
+    await assertWriteAllowed();
     const { id } = await params;
     const body = await readJsonBody(request);
     const parsed = patchSchema.safeParse(body);

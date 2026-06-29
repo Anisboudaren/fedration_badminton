@@ -199,7 +199,8 @@ export const translations = {
         errors: {
           email_required: "Email is required.",
           password_required: "Password is required.",
-          client_only: "Login can only happen in browser.",
+          invalid_credentials: "Invalid email or password.",
+          server_error: "Could not reach the server. Try again.",
           unknown: "Something went wrong.",
         },
       },
@@ -567,7 +568,8 @@ export const translations = {
         errors: {
           email_required: "E-mail obligatoire.",
           password_required: "Mot de passe obligatoire.",
-          client_only: "Connexion possible uniquement dans le navigateur.",
+          invalid_credentials: "E-mail ou mot de passe incorrect.",
+          server_error: "Impossible de joindre le serveur. Reessayez.",
           unknown: "Une erreur est survenue.",
         },
       },
@@ -935,7 +937,8 @@ export const translations = {
         errors: {
           email_required: "البريد الالكتروني مطلوب.",
           password_required: "كلمة المرور مطلوبة.",
-          client_only: "تسجيل الدخول متاح فقط داخل المتصفح.",
+          invalid_credentials: "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+          server_error: "تعذر الاتصال بالخادم. حاول مرة أخرى.",
           unknown: "حدث خطا ما.",
         },
       },

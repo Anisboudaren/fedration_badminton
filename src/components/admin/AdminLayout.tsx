@@ -23,6 +23,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 import logo from "@/assets/main logo.png";
 import { LangSwitcher } from "@/components/layout/LangSwitcher";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -46,7 +47,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useQuery } from "@tanstack/react-query";
-import { logout, getAuthUserEmail } from "@/lib/admin/auth";
+import { logout, fetchSession } from "@/lib/admin/auth";
 import { fetchCollectionStats } from "@/lib/cms/client";
 import { useI18n } from "@/i18n/I18nProvider";
 import { assetUrl } from "@/lib/utils";
@@ -190,9 +191,13 @@ function NavGroups({ compact, tooltipSide, onNavigate }: { compact?: boolean; to
 
 function AdminSidebarPanel({ side, tooltipSide }: { side: "left" | "right"; tooltipSide: "left" | "right" }) {
   const { t } = useI18n();
-  const email = getAuthUserEmail();
-  const initials = email.slice(0, 2).toUpperCase();
+  const [email, setEmail] = useState("");
+  const initials = (email || "AD").slice(0, 2).toUpperCase();
   const { setOpenMobile, isMobile } = useSidebar();
+
+  useEffect(() => {
+    fetchSession().then((session) => setEmail(session?.email ?? ""));
+  }, []);
 
   const closeMobile = () => {
     if (isMobile) setOpenMobile(false);
@@ -264,8 +269,8 @@ function AdminTopBar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const onLogout = () => {
-    logout();
+  const onLogout = async () => {
+    await logout();
     router.push("/admin/login");
   };
 

@@ -1,10 +1,16 @@
-import { jsonError, jsonOk, readJsonBody } from "@/lib/api/cms-route";
+import { assertAdminAuth, assertWriteAllowed, jsonError, jsonOk, readJsonBody } from "@/lib/api/cms-route";
 import { licenceRequestSchema } from "@/lib/api/schemas";
 import { createLicenceRequest, listLicenceRequests } from "@/lib/db/repositories/licence-requests";
 
 export async function GET() {
-  const items = await listLicenceRequests();
-  return jsonOk(items);
+  try {
+    await assertAdminAuth();
+    const items = await listLicenceRequests();
+    return jsonOk(items);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unauthorized";
+    return jsonError(message, message === "Unauthorized" ? 401 : 500);
+  }
 }
 
 export async function POST(request: Request) {

@@ -1,4 +1,5 @@
 import {
+  assertAdminAuth,
   assertWriteAllowed,
   jsonError,
   jsonOk,
@@ -15,18 +16,24 @@ import { validateCollectionBody } from "@/lib/api/validate-collection";
 type Params = { params: Promise<{ collection: string; id: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
-  const { collection: raw, id } = await params;
+  try {
+    await assertAdminAuth();
+    const { collection: raw, id } = await params;
   const collection = parseCollection(raw);
   if (!collection) return jsonError("Unknown collection", 404);
 
   const item = await getCollectionItem(collection, id);
   if (!item) return jsonError("Not found", 404);
   return jsonOk(item);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unauthorized";
+    return jsonError(message, message === "Unauthorized" ? 401 : 500);
+  }
 }
 
 export async function PATCH(request: Request, { params }: Params) {
   try {
-    assertWriteAllowed();
+    await assertWriteAllowed();
     const { collection: raw, id } = await params;
     const collection = parseCollection(raw);
     if (!collection) return jsonError("Unknown collection", 404);
@@ -44,7 +51,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
 export async function DELETE(_request: Request, { params }: Params) {
   try {
-    assertWriteAllowed();
+    await assertWriteAllowed();
     const { collection: raw, id } = await params;
     const collection = parseCollection(raw);
     if (!collection) return jsonError("Unknown collection", 404);

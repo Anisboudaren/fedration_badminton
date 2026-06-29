@@ -1,4 +1,5 @@
 import {
+  assertAdminAuth,
   assertWriteAllowed,
   jsonError,
   jsonOk,
@@ -14,18 +15,24 @@ import { validateCollectionBody } from "@/lib/api/validate-collection";
 type Params = { params: Promise<{ collection: string }> };
 
 export async function GET(request: Request, { params }: Params) {
-  const { collection: raw } = await params;
+  try {
+    await assertAdminAuth();
+    const { collection: raw } = await params;
   const collection = parseCollection(raw);
   if (!collection) return jsonError("Unknown collection", 404);
 
   const publishedOnly = new URL(request.url).searchParams.get("published") === "true";
   const items = await listCollection(collection, publishedOnly);
   return jsonOk(items);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unauthorized";
+    return jsonError(message, message === "Unauthorized" ? 401 : 500);
+  }
 }
 
 export async function POST(request: Request, { params }: Params) {
   try {
-    assertWriteAllowed();
+    await assertWriteAllowed();
     const { collection: raw } = await params;
     const collection = parseCollection(raw);
     if (!collection) return jsonError("Unknown collection", 404);

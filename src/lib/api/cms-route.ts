@@ -1,12 +1,19 @@
 import { NextResponse } from "next/server";
 import type { ApiCollection } from "@/lib/api/schemas";
 import { isApiCollection } from "@/lib/api/schemas";
+import { getSessionFromCookies } from "@/lib/admin/session";
 
-// Auth deferred — writes are open until auth phase. Set CMS_OPEN_WRITES=false later to lock down.
-export function assertWriteAllowed() {
+export async function assertAdminAuth() {
+  const session = await getSessionFromCookies();
+  if (!session) throw new Error("Unauthorized");
+}
+
+// Auth required for CMS writes. Set CMS_OPEN_WRITES=false to disable writes entirely.
+export async function assertWriteAllowed() {
   if (process.env.CMS_OPEN_WRITES === "false") {
     throw new Error("CMS writes are disabled");
   }
+  await assertAdminAuth();
 }
 
 export function parseCollection(value: string): ApiCollection | null {

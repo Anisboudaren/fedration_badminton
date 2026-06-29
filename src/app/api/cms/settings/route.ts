@@ -1,15 +1,21 @@
-import { assertWriteAllowed, jsonError, jsonOk, readJsonBody } from "@/lib/api/cms-route";
+import { assertAdminAuth, assertWriteAllowed, jsonError, jsonOk, readJsonBody } from "@/lib/api/cms-route";
 import { getSiteSettings, saveSiteSettings } from "@/lib/db/repositories/settings";
 import { siteSettingsSchema } from "@/lib/api/schemas";
 
 export async function GET() {
-  const settings = await getSiteSettings();
-  return jsonOk(settings);
+  try {
+    await assertAdminAuth();
+    const settings = await getSiteSettings();
+    return jsonOk(settings);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unauthorized";
+    return jsonError(message, message === "Unauthorized" ? 401 : 500);
+  }
 }
 
 export async function PATCH(request: Request) {
   try {
-    assertWriteAllowed();
+    await assertWriteAllowed();
     const body = await readJsonBody(request);
     const parsed = siteSettingsSchema.safeParse(body);
     if (!parsed.success) return jsonError(parsed.error.message);

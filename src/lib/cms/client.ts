@@ -3,7 +3,12 @@ import type { LicenceRequest, RankingsData, SiteSettings } from "@/lib/admin/typ
 import type { ActivityItem } from "@/lib/db/repositories/licence-requests";
 
 async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, { ...init, headers: { "Content-Type": "application/json", ...init?.headers } });
+  const res = await fetch(url, {
+    ...init,
+    credentials: "same-origin",
+    cache: "no-store",
+    headers: { "Content-Type": "application/json", ...init?.headers },
+  });
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as { error?: string } | null;
     throw new Error(body?.error ?? res.statusText);
@@ -99,7 +104,7 @@ export async function uploadImage(file: File, folder = "uploads"): Promise<strin
   form.append("file", file);
   form.append("folder", folder);
 
-  const res = await fetch("/api/upload", { method: "POST", body: form });
+  const res = await fetch("/api/upload", { method: "POST", body: form, credentials: "same-origin" });
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as { error?: string } | null;
     throw new Error(body?.error ?? "Upload failed");

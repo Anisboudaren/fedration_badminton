@@ -1,4 +1,4 @@
-import { assertWriteAllowed, jsonError, jsonOk, readJsonBody } from "@/lib/api/cms-route";
+import { assertAdminAuth, assertWriteAllowed, jsonError, jsonOk, readJsonBody } from "@/lib/api/cms-route";
 import { getRankings, saveRankings } from "@/lib/db/repositories/settings";
 import { z } from "zod";
 
@@ -8,13 +8,19 @@ const rankingsSchema = z.object({
 });
 
 export async function GET() {
-  const data = await getRankings();
-  return jsonOk(data);
+  try {
+    await assertAdminAuth();
+    const data = await getRankings();
+    return jsonOk(data);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unauthorized";
+    return jsonError(message, message === "Unauthorized" ? 401 : 500);
+  }
 }
 
 export async function PATCH(request: Request) {
   try {
-    assertWriteAllowed();
+    await assertWriteAllowed();
     const body = await readJsonBody(request);
     const parsed = rankingsSchema.safeParse(body);
     if (!parsed.success) return jsonError(parsed.error.message);

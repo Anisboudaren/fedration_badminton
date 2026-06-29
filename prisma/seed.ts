@@ -18,6 +18,7 @@ import {
 import { fromLocalizedText, fromLocalizedTextArray, fromTeamCategory } from "../src/lib/db/mappers";
 import { SPONSORS } from "../src/lib/data/mock-site";
 import { resolveSponsorLogoUrl } from "../src/lib/seed/sponsor-logos";
+import { upsertSeedAdminUser } from "../src/lib/db/repositories/admin-users";
 
 async function main() {
   console.log("Seeding database...");
@@ -309,6 +310,15 @@ async function main() {
     create: { id: "default", data: rankings as object },
     update: { data: rankings as object },
   });
+
+  const adminEmail = process.env.ADMIN_SEED_EMAIL ?? "admin@badminton.dz";
+  const adminPassword = process.env.ADMIN_SEED_PASSWORD ?? "AbfAdmin2026!";
+  const admin = await upsertSeedAdminUser({
+    email: adminEmail,
+    password: adminPassword,
+    name: "ABF Administrator",
+  });
+  console.log(`[seed] Admin user ready: ${admin.email}`);
 
   console.log("Seed complete.");
 }
