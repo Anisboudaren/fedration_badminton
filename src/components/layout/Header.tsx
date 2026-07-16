@@ -9,12 +9,13 @@ import { LOGO_DARK_TEXT, LOGO_WHITE_TEXT } from "@/lib/brand-logos";
 import { BadmintonIcon } from "@/components/icons/BadmintonIcon";
 import { useI18n } from "@/i18n/I18nProvider";
 import { LangSwitcher } from "@/components/layout/LangSwitcher";
+import { pickLocalized } from "@/lib/db/mappers";
 import { cn, assetUrl } from "@/lib/utils";
 
 const SCROLL_THRESHOLD = 72;
 
 export function Header() {
-  const { t } = useI18n();
+  const { t, lang, siteSettings } = useI18n();
   const pathname = usePathname();
   const [openForPath, setOpenForPath] = useState<string | null>(null);
   const [homeScrollY, setHomeScrollY] = useState(0);
@@ -24,6 +25,7 @@ export function Header() {
   const setOpen = (next: boolean) => setOpenForPath(next ? pathname : null);
   const scrolled = isHome && homeScrollY > SCROLL_THRESHOLD;
   const overlay = isHome && !scrolled;
+  const topBarText = pickLocalized(siteSettings.topBarText, lang) || t.welcome;
 
   useEffect(() => {
     if (!isHome) return;
@@ -125,7 +127,7 @@ export function Header() {
         )}
       >
         <div className="container-px flex h-8 items-center justify-between">
-          <span className="hidden truncate sm:inline">🏸 {t.welcome}</span>
+          <span className="hidden truncate sm:inline">🏸 {topBarText}</span>
           <div className="flex items-center gap-3 ms-auto">
             <Link
               href="/about"

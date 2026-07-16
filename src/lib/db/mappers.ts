@@ -1,12 +1,17 @@
 import { normalizeSiteContactInfo } from "@/lib/data/contact-info";
+import { defaultSiteSettings } from "@/lib/admin/content-store";
 import type { Prisma } from "@/generated/prisma/client";
 import type {
   Article,
   ArticleSection,
   ArchiveYear,
+  AboutDocument,
+  AboutOrgNode,
+  AboutPageContent,
   Club,
   ContentStatus,
   EventItem,
+  FederationMemberItem,
   LicenceRequest,
   LocalizedText,
   MatchResult,
@@ -372,21 +377,132 @@ export function mapArchiveYear(row: {
   };
 }
 
+function localizedOrDefault(value: unknown, fallback: LocalizedText): LocalizedText {
+  const mapped = toLocalizedText(value);
+  if (mapped.en || mapped.fr || mapped.ar) return mapped;
+  return fallback;
+}
+
 export function mapSiteSettings(row: {
   heroTitle: unknown;
   heroTagline: unknown;
   defaultLang: string;
   maintenanceMode: boolean;
   maintenanceMessage: unknown;
+  topBarText?: unknown;
+  footerAbout?: unknown;
+  footerOrgName?: unknown;
+  footerRights?: unknown;
   contactInfo?: unknown;
 }): SiteSettings {
+  const defaults = defaultSiteSettings();
   return {
     heroTitle: toLocalizedText(row.heroTitle),
     heroTagline: toLocalizedText(row.heroTagline),
     defaultLang: (row.defaultLang as Lang) || "ar",
     maintenanceMode: row.maintenanceMode,
     maintenanceMessage: toLocalizedText(row.maintenanceMessage),
+    topBarText: localizedOrDefault(row.topBarText, defaults.topBarText),
+    footerAbout: localizedOrDefault(row.footerAbout, defaults.footerAbout),
+    footerOrgName: localizedOrDefault(row.footerOrgName, defaults.footerOrgName),
+    footerRights: localizedOrDefault(row.footerRights, defaults.footerRights),
     contact: normalizeSiteContactInfo(row.contactInfo),
+  };
+}
+
+function mapAboutOrgNodes(value: unknown): AboutOrgNode[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((item, index) => {
+    const obj = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
+    return {
+      id: typeof obj.id === "string" ? obj.id : `org-${index}`,
+      title: toLocalizedText(obj.title),
+      subtitle: toLocalizedText(obj.subtitle),
+      imageUrl: typeof obj.imageUrl === "string" ? obj.imageUrl : "",
+    };
+  });
+}
+
+function mapAboutDocuments(value: unknown): AboutDocument[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((item, index) => {
+    const obj = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
+    const kind = obj.kind === "link" ? "link" : "file";
+    return {
+      id: typeof obj.id === "string" ? obj.id : `doc-${index}`,
+      title: toLocalizedText(obj.title),
+      subtitle: toLocalizedText(obj.subtitle),
+      kind,
+      fileUrl: typeof obj.fileUrl === "string" ? obj.fileUrl : "",
+      href: typeof obj.href === "string" ? obj.href : "",
+    };
+  });
+}
+
+export function mapAboutPageContent(row: {
+  heroTitle: unknown;
+  heroIntro: unknown;
+  heroImageUrl: string;
+  missionTitle: unknown;
+  missionP1: unknown;
+  missionP2: unknown;
+  missionImageUrl: string;
+  leadershipTitle: unknown;
+  leadershipIntro: unknown;
+  orgTitle: unknown;
+  orgNodes: unknown;
+  regulationsTitle: unknown;
+  regulationsIntro: unknown;
+  documentsTitle: unknown;
+  documents: unknown;
+}): AboutPageContent {
+  return {
+    heroTitle: toLocalizedText(row.heroTitle),
+    heroIntro: toLocalizedText(row.heroIntro),
+    heroImageUrl: row.heroImageUrl ?? "",
+    missionTitle: toLocalizedText(row.missionTitle),
+    missionP1: toLocalizedText(row.missionP1),
+    missionP2: toLocalizedText(row.missionP2),
+    missionImageUrl: row.missionImageUrl ?? "",
+    leadershipTitle: toLocalizedText(row.leadershipTitle),
+    leadershipIntro: toLocalizedText(row.leadershipIntro),
+    orgTitle: toLocalizedText(row.orgTitle),
+    orgNodes: mapAboutOrgNodes(row.orgNodes),
+    regulationsTitle: toLocalizedText(row.regulationsTitle),
+    regulationsIntro: toLocalizedText(row.regulationsIntro),
+    documentsTitle: toLocalizedText(row.documentsTitle),
+    documents: mapAboutDocuments(row.documents),
+  };
+}
+
+export function mapFederationMember(row: {
+  id: string;
+  firstName: unknown;
+  lastName: unknown;
+  role: unknown;
+  photoUrl: string;
+  sortOrder: number;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+}): FederationMemberItem {
+  const firstName = toLocalizedText(row.firstName);
+  const lastName = toLocalizedText(row.lastName);
+  return {
+    id: row.id,
+    title: {
+      en: `${firstName.en} ${lastName.en}`.trim(),
+      fr: `${firstName.fr} ${lastName.fr}`.trim(),
+      ar: `${firstName.ar} ${lastName.ar}`.trim(),
+    },
+    firstName,
+    lastName,
+    role: toLocalizedText(row.role),
+    photoUrl: row.photoUrl ?? "",
+    sortOrder: row.sortOrder,
+    status: toContentStatus(row.status),
+    createdAt: toIso(row.createdAt),
+    updatedAt: toIso(row.updatedAt),
   };
 }
 

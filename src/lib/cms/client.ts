@@ -1,5 +1,5 @@
 import type { CollectionKey, CollectionMap } from "@/lib/admin/content-store";
-import type { LicenceRequest, RankingsData, SiteSettings } from "@/lib/admin/types";
+import type { AboutPageContent, LicenceRequest, RankingsData, SiteSettings } from "@/lib/admin/types";
 import type { ActivityItem } from "@/lib/db/repositories/licence-requests";
 
 async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
@@ -58,6 +58,14 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
 
 export async function saveSiteSettingsApi(settings: SiteSettings): Promise<SiteSettings> {
   return apiFetch<SiteSettings>("/api/cms/settings", { method: "PATCH", body: JSON.stringify(settings) });
+}
+
+export async function fetchAboutPage(): Promise<AboutPageContent> {
+  return apiFetch<AboutPageContent>("/api/cms/about");
+}
+
+export async function saveAboutPageApi(data: AboutPageContent): Promise<AboutPageContent> {
+  return apiFetch<AboutPageContent>("/api/cms/about", { method: "PATCH", body: JSON.stringify(data) });
 }
 
 export async function fetchRankings(): Promise<RankingsData> {

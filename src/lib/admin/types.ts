@@ -149,7 +149,53 @@ export type SiteSettings = {
   defaultLang: Lang;
   maintenanceMode: boolean;
   maintenanceMessage: LocalizedText;
+  topBarText: LocalizedText;
+  footerAbout: LocalizedText;
+  footerOrgName: LocalizedText;
+  footerRights: LocalizedText;
   contact: SiteContactInfo;
+};
+
+export type AboutOrgNode = {
+  id: string;
+  title: LocalizedText;
+  subtitle: LocalizedText;
+  imageUrl: string;
+};
+
+export type AboutDocument = {
+  id: string;
+  title: LocalizedText;
+  subtitle: LocalizedText;
+  kind: "file" | "link";
+  fileUrl?: string;
+  href?: string;
+};
+
+export type AboutPageContent = {
+  heroTitle: LocalizedText;
+  heroIntro: LocalizedText;
+  heroImageUrl: string;
+  missionTitle: LocalizedText;
+  missionP1: LocalizedText;
+  missionP2: LocalizedText;
+  missionImageUrl: string;
+  leadershipTitle: LocalizedText;
+  leadershipIntro: LocalizedText;
+  orgTitle: LocalizedText;
+  orgNodes: AboutOrgNode[];
+  regulationsTitle: LocalizedText;
+  regulationsIntro: LocalizedText;
+  documentsTitle: LocalizedText;
+  documents: AboutDocument[];
+};
+
+export type FederationMemberItem = BaseContentItem & {
+  firstName: LocalizedText;
+  lastName: LocalizedText;
+  role: LocalizedText;
+  photoUrl: string;
+  sortOrder: number;
 };
 
 export type RankingsPlayer = {

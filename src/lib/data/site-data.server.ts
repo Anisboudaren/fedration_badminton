@@ -2,8 +2,10 @@ import type { Lang } from "@/i18n/translations";
 import type {
   ArchiveYear,
   Article,
+  AboutPageContent,
   Club,
   EventItem,
+  FederationMemberItem,
   LocalizedText,
   MatchResult,
   MediaItem,
@@ -27,6 +29,7 @@ import {
   listSponsors,
   listTeams,
 } from "@/lib/db/repositories/collections";
+import { getAboutPageContent, listFederationMembers } from "@/lib/db/repositories/about";
 import { getRankings, getSiteSettings } from "@/lib/db/repositories/settings";
 import { sortSponsorsByTier } from "@/lib/data/sponsors";
 import { eventsFromToday } from "@/lib/data/events";
@@ -98,6 +101,19 @@ export async function getArchiveYears(): Promise<ArchiveYear[]> {
 
 export async function getNationalRankings(): Promise<RankingsData> {
   return getRankings();
+}
+
+export type AboutPageData = {
+  content: AboutPageContent;
+  members: FederationMemberItem[];
+};
+
+export async function getAboutPageData(): Promise<AboutPageData> {
+  const [content, members] = await Promise.all([
+    getAboutPageContent(),
+    listFederationMembers(true),
+  ]);
+  return { content, members };
 }
 
 export async function readSiteSettings(): Promise<SiteSettings> {

@@ -164,7 +164,58 @@ export const siteSettingsSchema = z.object({
   defaultLang: z.enum(["en", "fr", "ar"]),
   maintenanceMode: z.boolean(),
   maintenanceMessage: localizedTextSchema,
+  topBarText: localizedTextSchema,
+  footerAbout: localizedTextSchema,
+  footerOrgName: localizedTextSchema,
+  footerRights: localizedTextSchema,
   contact: siteContactInfoSchema,
+});
+
+export const aboutOrgNodeSchema = z.object({
+  id: z.string(),
+  title: localizedTextSchema,
+  subtitle: localizedTextSchema,
+  imageUrl: z.string().optional().default(""),
+});
+
+export const aboutDocumentSchema = z.object({
+  id: z.string(),
+  title: localizedTextSchema,
+  subtitle: localizedTextSchema,
+  kind: z.enum(["file", "link"]),
+  fileUrl: z.string().optional(),
+  href: z.string().optional(),
+});
+
+export const aboutPageContentSchema = z.object({
+  heroTitle: localizedTextSchema,
+  heroIntro: localizedTextSchema,
+  heroImageUrl: z.string(),
+  missionTitle: localizedTextSchema,
+  missionP1: localizedTextSchema,
+  missionP2: localizedTextSchema,
+  missionImageUrl: z.string(),
+  leadershipTitle: localizedTextSchema,
+  leadershipIntro: localizedTextSchema,
+  orgTitle: localizedTextSchema,
+  orgNodes: z.array(aboutOrgNodeSchema),
+  regulationsTitle: localizedTextSchema,
+  regulationsIntro: localizedTextSchema,
+  documentsTitle: localizedTextSchema,
+  documents: z.array(aboutDocumentSchema),
+});
+
+export const federationMemberSchema = z.object({
+  id: z.string(),
+  title: localizedTextSchema.optional(),
+  firstName: localizedTextSchema,
+  lastName: localizedTextSchema,
+  role: localizedTextSchema,
+  photoUrl: z.string(),
+  sortOrder: z.number(),
+  status: contentStatusSchema,
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 });
 
 export const licenceRequestSchema = z.object({
@@ -199,6 +250,7 @@ export const COLLECTIONS = [
   "media",
   "players",
   "officials",
+  "federation-members",
   "matches",
   "sponsors",
   "clubs",

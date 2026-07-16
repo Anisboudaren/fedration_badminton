@@ -18,6 +18,9 @@ import {
 import { fromLocalizedText, fromLocalizedTextArray, fromTeamCategory } from "../src/lib/db/mappers";
 import { SPONSORS } from "../src/lib/data/mock-site";
 import { resolveSponsorLogoUrl } from "../src/lib/seed/sponsor-logos";
+import { saveAboutPageContent, upsertFederationMember } from "../src/lib/db/repositories/about";
+import { FEDERATION_MEMBERS } from "../src/lib/data/federation-members";
+import { defaultAboutPageContent } from "../src/lib/data/about-defaults";
 import { upsertSeedAdminUser } from "../src/lib/db/repositories/admin-users";
 
 async function main() {
@@ -297,10 +300,18 @@ async function main() {
       defaultLang: settings.defaultLang,
       maintenanceMode: settings.maintenanceMode,
       maintenanceMessage: fromLocalizedText(settings.maintenanceMessage),
+      topBarText: fromLocalizedText(settings.topBarText),
+      footerAbout: fromLocalizedText(settings.footerAbout),
+      footerOrgName: fromLocalizedText(settings.footerOrgName),
+      footerRights: fromLocalizedText(settings.footerRights),
       contactInfo: contactInfoToJson(settings.contact),
     },
     update: {
       contactInfo: contactInfoToJson(settings.contact),
+      topBarText: fromLocalizedText(settings.topBarText),
+      footerAbout: fromLocalizedText(settings.footerAbout),
+      footerOrgName: fromLocalizedText(settings.footerOrgName),
+      footerRights: fromLocalizedText(settings.footerRights),
     },
   });
 
@@ -319,6 +330,32 @@ async function main() {
     name: "ABF Administrator",
   });
   console.log(`[seed] Admin user ready: ${admin.email}`);
+
+  await saveAboutPageContent(defaultAboutPageContent());
+  console.log("[seed] About page content ready");
+
+  await prisma.federationMember.deleteMany();
+  const now = new Date().toISOString();
+  for (let i = 0; i < FEDERATION_MEMBERS.length; i++) {
+    const m = FEDERATION_MEMBERS[i];
+    await upsertFederationMember({
+      id: `fm-seed-${i + 1}`,
+      title: {
+        en: `${m.firstName.en} ${m.lastName.en}`.trim(),
+        fr: `${m.firstName.fr} ${m.lastName.fr}`.trim(),
+        ar: `${m.firstName.ar} ${m.lastName.ar}`.trim(),
+      },
+      firstName: m.firstName,
+      lastName: m.lastName,
+      role: m.role,
+      photoUrl: decodeURIComponent(m.photo),
+      sortOrder: i,
+      status: "published",
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+  console.log(`[seed] Federation members: ${FEDERATION_MEMBERS.length}`);
 
   console.log("Seed complete.");
 }

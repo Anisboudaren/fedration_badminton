@@ -1,24 +1,35 @@
 "use client";
 
 import Link from "next/link";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, ExternalLink } from "lucide-react";
 import { PageHero } from "@/components/layout/PageHero";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useI18n } from "@/i18n/I18nProvider";
 import { TECHNICAL_REGULATIONS, pickReg } from "@/lib/data/technical-regulations";
-import { FEDERATION_MEMBERS, pickMemberText, type FederationMember } from "@/lib/data/federation-members";
+import type { AboutPageData } from "@/lib/data/site-data.server";
+import type { FederationMemberItem } from "@/lib/admin/types";
+import { pickLocalized } from "@/lib/data/site-data";
 import { BidiText, LtrNum } from "@/components/ui/bidi-text";
-import { assetUrl, cn } from "@/lib/utils";
-const statutesFile = "/assets/info/Collegue Technique 2025 (2).docx";
+import { cmsImageUrl } from "@/lib/storage/blob-url";
+import { cn } from "@/lib/utils";
 import brandTogether from "@/assets/branded images/ABF together we play.webp";
 import photoWide from "@/assets/images/WhatsApp Image 2026-06-22 at 10.01.01.webp";
 
-function FederationMemberCard({ member, index, lang }: { member: FederationMember; index: number; lang: string }) {
-  const firstName = pickMemberText(member.firstName, lang);
-  const lastName = pickMemberText(member.lastName, lang);
-  const role = pickMemberText(member.role, lang);
+function FederationMemberCard({
+  member,
+  index,
+  lang,
+}: {
+  member: FederationMemberItem;
+  index: number;
+  lang: string;
+}) {
+  const firstName = pickLocalized(member.firstName, lang as "en" | "fr" | "ar");
+  const lastName = pickLocalized(member.lastName, lang as "en" | "fr" | "ar");
+  const role = pickLocalized(member.role, lang as "en" | "fr" | "ar");
+  const photo = cmsImageUrl(member.photoUrl);
 
   return (
     <article
@@ -29,12 +40,14 @@ function FederationMemberCard({ member, index, lang }: { member: FederationMembe
       style={{ animationDelay: `${index * 50}ms` }}
     >
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-footer">
-        <img
-          src={member.photo}
-          alt={`${firstName} ${lastName}`}
-          loading="lazy"
-          className="h-full w-full object-contain object-center transition duration-500 group-hover:scale-[1.02]"
-        />
+        {photo ? (
+          <img
+            src={photo}
+            alt={`${firstName} ${lastName}`}
+            loading="lazy"
+            className="h-full w-full object-contain object-center transition duration-500 group-hover:scale-[1.02]"
+          />
+        ) : null}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-footer/25 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
       </div>
       <div className="border-t border-border/60 px-3 py-3 text-center sm:px-4 sm:py-3.5">
@@ -47,28 +60,35 @@ function FederationMemberCard({ member, index, lang }: { member: FederationMembe
   );
 }
 
-function AboutPage() {
+function AboutPage({ initialData }: { initialData: AboutPageData }) {
   const { t, lang } = useI18n();
-  const isFr = lang === "fr" || lang === "en";
+  const { content, members } = initialData;
 
-  const org = [
-    { title: isFr ? "Présidence" : "الرئاسة", sub: isFr ? "Direction stratégique" : "التوجيه الاستراتيجي" },
-    { title: isFr ? "Secrétariat Général" : "الأمانة العامة", sub: isFr ? "Coordination administrative" : "التنسيق الإداري" },
-    { title: isFr ? "Commission Technique" : "اللجنة التقنية", sub: isFr ? "Formation & compétitions" : "التكوين والبطولات" },
-    { title: isFr ? "Arbitrage" : "التحكيم", sub: isFr ? "Officiels & règlements" : "الحكام واللوائح" },
-  ];
+  const heroTitle = pickLocalized(content.heroTitle, lang);
+  const heroIntro = pickLocalized(content.heroIntro, lang);
+  const heroImage = cmsImageUrl(content.heroImageUrl, photoWide);
+  const missionTitle = pickLocalized(content.missionTitle, lang);
+  const missionP1 = pickLocalized(content.missionP1, lang);
+  const missionP2 = pickLocalized(content.missionP2, lang);
+  const missionImage = cmsImageUrl(content.missionImageUrl, brandTogether);
+  const leadershipTitle = pickLocalized(content.leadershipTitle, lang);
+  const leadershipIntro = pickLocalized(content.leadershipIntro, lang);
+  const orgTitle = pickLocalized(content.orgTitle, lang);
+  const regulationsTitle =
+    pickLocalized(content.regulationsTitle, lang) || pickReg(TECHNICAL_REGULATIONS.title, lang);
+  const regulationsIntro = pickLocalized(content.regulationsIntro, lang);
+  const documentsTitle = pickLocalized(content.documentsTitle, lang);
+
+  const downloadLabel = lang === "ar" ? "تحميل" : lang === "fr" ? "Télécharger" : "Download";
+  const viewLabel = lang === "ar" ? "عرض" : lang === "fr" ? "Voir" : "View";
 
   return (
     <>
       <PageHero
-        title={isFr ? "À propos de la Fédération" : "عن الاتحادية"}
-        breadcrumb={isFr ? "Accueil / À propos" : "الرئيسية / من نحن"}
-        intro={
-          isFr
-            ? "La Fédération Algérienne de Badminton œuvre pour le développement du sport à travers tout le territoire national."
-            : "تعمل الاتحادية الجزائرية للريشة الطائرة على تطوير الرياضة عبر كامل التراب الوطني."
-        }
-        image={photoWide}
+        title={heroTitle}
+        breadcrumb={`${t.nav.home} / ${t.nav.about}`}
+        intro={heroIntro}
+        image={heroImage}
       />
 
       <section className="container-px py-14">
@@ -80,79 +100,84 @@ function AboutPage() {
         />
         <div className="mt-8 grid items-center gap-10 lg:grid-cols-2">
           <div>
-            <h2 className="section-title">{isFr ? "Notre mission" : "مهمتنا"}</h2>
-            <p className="mt-6 text-sm leading-7 text-muted-foreground md:text-base">
-              {isFr
-                ? "Promouvoir le badminton en Algérie, organiser les compétitions officielles, former les joueurs et encadrer les clubs affiliés selon les standards internationaux de la BWF."
-                : "ترقية الريشة الطائرة في الجزائر، وتنظيم البطولات الرسمية، وتكوين اللاعبين ومرافقة الأندية المنخرطة وفق المعايير الدولية للاتحاد العالمي."}
-            </p>
-            <p className="mt-4 text-sm leading-7 text-muted-foreground md:text-base">
-              {isFr
-                ? "Nous visons à faire du badminton un sport accessible, compétitif et fédérateur pour toutes les générations."
-                : "نهدف إلى جعل الريشة الطائرة رياضة متاحة وتنافسية وجامعة لكل الأجيال."}
-            </p>
+            <h2 className="section-title">{missionTitle}</h2>
+            {missionP1 ? (
+              <p className="mt-6 text-sm leading-7 text-muted-foreground md:text-base">{missionP1}</p>
+            ) : null}
+            {missionP2 ? (
+              <p className="mt-4 text-sm leading-7 text-muted-foreground md:text-base">{missionP2}</p>
+            ) : null}
           </div>
-          <div className="overflow-hidden rounded-2xl border shadow-lg">
-            <img src={assetUrl(brandTogether)} alt="" className="w-full object-cover" loading="lazy" />
-          </div>
+          {missionImage ? (
+            <div className="overflow-hidden rounded-2xl border shadow-lg">
+              <img src={missionImage} alt="" className="w-full object-cover" loading="lazy" />
+            </div>
+          ) : null}
         </div>
       </section>
 
-      <section className="border-y border-border/60 bg-gradient-to-b from-muted/40 to-background py-14 md:py-16">
-        <div className="container-px">
-          <div className="mx-auto mb-10 max-w-2xl text-center">
-            <h2 className="section-title">
-              {lang === "ar"
-                ? "فريق الاتحادية"
-                : lang === "fr"
-                  ? "L'équipe dirigeante"
-                  : "Federation leadership"}
-            </h2>
-            <p className="mt-4 text-sm leading-7 text-muted-foreground md:text-base">
-              {lang === "ar"
-                ? "الأعضاء الذين يقودون الاتحادية ويطلقون رؤية تطوير الريشة الطائرة في الجزائر."
-                : lang === "fr"
-                  ? "Les membres qui portent la vision et le développement du badminton algérien à travers le pays."
-                  : "The leaders driving the federation's vision and the growth of badminton across Algeria."}
-            </p>
-          </div>
+      {(leadershipTitle || members.length > 0) && (
+        <section className="border-y border-border/60 bg-gradient-to-b from-muted/40 to-background py-14 md:py-16">
+          <div className="container-px">
+            <div className="mx-auto mb-10 max-w-2xl text-center">
+              {leadershipTitle ? <h2 className="section-title">{leadershipTitle}</h2> : null}
+              {leadershipIntro ? (
+                <p className="mt-4 text-sm leading-7 text-muted-foreground md:text-base">
+                  {leadershipIntro}
+                </p>
+              ) : null}
+            </div>
 
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
-            {FEDERATION_MEMBERS.map((member, index) => (
-              <FederationMemberCard key={member.photo} member={member} index={index} lang={lang} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-muted/30 py-14">
-        <div className="container-px">
-          <h2 className="section-title mb-8">{isFr ? "Structure organisationnelle" : "الهيكل التنظيمي"}</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {org.map((node) => (
-              <div
-                key={node.title}
-                className="rounded-xl border bg-card p-5 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <div className="mx-auto mb-3 h-10 w-10 rounded-full bg-primary/10" />
-                <h3 className="font-semibold">{node.title}</h3>
-                <p className="mt-1 text-xs text-muted-foreground">{node.sub}</p>
+            {members.length > 0 ? (
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
+                {members.map((member, index) => (
+                  <FederationMemberCard key={member.id} member={member} index={index} lang={lang} />
+                ))}
               </div>
-            ))}
+            ) : null}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {content.orgNodes.length > 0 ? (
+        <section className="bg-muted/30 py-14">
+          <div className="container-px">
+            {orgTitle ? <h2 className="section-title mb-8">{orgTitle}</h2> : null}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {content.orgNodes.map((node) => {
+                const image = cmsImageUrl(node.imageUrl);
+                return (
+                  <div
+                    key={node.id}
+                    className="rounded-xl border bg-card p-5 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                  >
+                    {image ? (
+                      <div className="mx-auto mb-3 h-16 w-16 overflow-hidden rounded-full border border-border bg-muted">
+                        <img src={image} alt="" className="h-full w-full object-cover" loading="lazy" />
+                      </div>
+                    ) : (
+                      <div className="mx-auto mb-3 h-10 w-10 rounded-full bg-primary/10" />
+                    )}
+                    <h3 className="font-semibold">{pickLocalized(node.title, lang)}</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {pickLocalized(node.subtitle, lang)}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="container-px py-14">
         <div className="mb-8 max-w-3xl">
-          <h2 className="section-title">{pickReg(TECHNICAL_REGULATIONS.title, lang)}</h2>
-          <p className="mt-4 text-sm leading-7 text-muted-foreground md:text-base">
-            {lang === "ar"
-              ? "ملخّص عملي للوائح الرسمية: انخراط، رخص، بطولات ومعايير الاختيار — منظّم حسب الموضوع لتسهيل القراءة."
-              : lang === "fr"
-                ? "Résumé pratique du règlement officiel : affiliation, licences, compétitions et sélection — organisé par thème pour une lecture rapide."
-                : "Practical summary of official regulations: affiliation, licences, competitions and selection — organised by topic for easy reading."}
-          </p>
+          <h2 className="section-title">{regulationsTitle}</h2>
+          {regulationsIntro ? (
+            <p className="mt-4 text-sm leading-7 text-muted-foreground md:text-base">
+              {regulationsIntro}
+            </p>
+          ) : null}
         </div>
 
         <Accordion type="multiple" className="space-y-3">
@@ -219,8 +244,8 @@ function AboutPage() {
                             {j + 1}
                           </span>
                           <span>
-                          <BidiText text={pickReg(item, lang)} />
-                        </span>
+                            <BidiText text={pickReg(item, lang)} />
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -232,48 +257,51 @@ function AboutPage() {
         </Accordion>
       </section>
 
-      <section className="border-t bg-muted/30 py-14">
-        <div className="container-px">
-          <h2 className="section-title mb-8">
-            {lang === "ar" ? "الوثائق الرسمية" : lang === "fr" ? "Documents officiels" : "Official documents"}
-          </h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="flex items-center justify-between gap-4 rounded-xl border bg-card p-5 shadow-sm">
-              <div className="flex items-center gap-3">
-                <FileText className="h-8 w-8 shrink-0 text-primary" />
-                <div>
-                  <p className="font-semibold">{pickReg(TECHNICAL_REGULATIONS.title, lang)}</p>
-                  <p className="text-xs text-muted-foreground">DOCX · Collège Technique 2025</p>
-                </div>
-              </div>
-              <Button variant="outline" size="sm" asChild>
-                <a href={statutesFile} download>
-                  <Download className="h-4 w-4" />
-                  {lang === "ar" ? "تحميل" : lang === "fr" ? "Télécharger" : "Download"}
-                </a>
-              </Button>
-            </div>
-            <div className="flex items-center justify-between gap-4 rounded-xl border bg-card p-5 shadow-sm">
-              <div className="flex items-center gap-3">
-                <FileText className="h-8 w-8 shrink-0 text-primary" />
-                <div>
-                  <p className="font-semibold">
-                    {lang === "ar"
-                      ? "ترتيب البطولة الوطنية للأكابر 2026"
-                      : lang === "fr"
-                        ? "Classement national seniors 2026"
-                        : "National seniors ranking 2026"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">XLS · Championnat national</p>
-                </div>
-              </div>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/events">{lang === "ar" ? "عرض" : lang === "fr" ? "Voir" : "View"}</Link>
-              </Button>
+      {content.documents.length > 0 ? (
+        <section className="border-t bg-muted/30 py-14">
+          <div className="container-px">
+            {documentsTitle ? <h2 className="section-title mb-8">{documentsTitle}</h2> : null}
+            <div className="grid gap-4 md:grid-cols-2">
+              {content.documents.map((doc) => {
+                const title = pickLocalized(doc.title, lang);
+                const subtitle = pickLocalized(doc.subtitle, lang);
+                const isFile = doc.kind === "file" && doc.fileUrl;
+                const href = isFile ? doc.fileUrl! : doc.href || "#";
+
+                return (
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between gap-4 rounded-xl border bg-card p-5 shadow-sm"
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-8 w-8 shrink-0 text-primary" />
+                      <div>
+                        <p className="font-semibold">{title}</p>
+                        {subtitle ? <p className="text-xs text-muted-foreground">{subtitle}</p> : null}
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm" asChild>
+                      {isFile ? (
+                        <a href={href} download>
+                          <Download className="h-4 w-4" />
+                          {downloadLabel}
+                        </a>
+                      ) : (
+                        <Link href={href}>
+                          {href.startsWith("http") ? (
+                            <ExternalLink className="h-4 w-4" />
+                          ) : null}
+                          {viewLabel}
+                        </Link>
+                      )}
+                    </Button>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
     </>
   );
 }

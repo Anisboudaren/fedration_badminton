@@ -7,7 +7,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 // Bumped when SiteSettings.contactInfo was added — clears stale dev singleton after prisma generate.
-const PRISMA_SCHEMA_VERSION = "2026-06-29-contact-info";
+const PRISMA_SCHEMA_VERSION = "2026-07-16-chrome-text";
 
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;

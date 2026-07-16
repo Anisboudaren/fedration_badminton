@@ -20,6 +20,7 @@ import {
   ExternalLink,
   PanelLeft,
   PanelRight,
+  Info,
   type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -65,6 +66,7 @@ type NavKey =
   | "sponsors"
   | "clubs"
   | "requests"
+  | "about"
   | "settings";
 
 type NavItem = {
@@ -130,7 +132,10 @@ const navGroups: NavGroupDef[] = [
   },
   {
     groupKey: "system",
-    links: [{ to: "/admin/settings", icon: Settings, key: "settings" }],
+    links: [
+      { to: "/admin/about", icon: Info, key: "about" },
+      { to: "/admin/settings", icon: Settings, key: "settings" },
+    ],
   },
 ];
 

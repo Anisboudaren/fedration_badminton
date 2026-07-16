@@ -22,6 +22,10 @@ export async function saveSiteSettings(settings: SiteSettings): Promise<SiteSett
       defaultLang: settings.defaultLang,
       maintenanceMode: settings.maintenanceMode,
       maintenanceMessage: fromLocalizedText(settings.maintenanceMessage),
+      topBarText: fromLocalizedText(settings.topBarText),
+      footerAbout: fromLocalizedText(settings.footerAbout),
+      footerOrgName: fromLocalizedText(settings.footerOrgName),
+      footerRights: fromLocalizedText(settings.footerRights),
       contactInfo: contactInfoToJson(settings.contact),
     },
     update: {
@@ -30,6 +34,10 @@ export async function saveSiteSettings(settings: SiteSettings): Promise<SiteSett
       defaultLang: settings.defaultLang,
       maintenanceMode: settings.maintenanceMode,
       maintenanceMessage: fromLocalizedText(settings.maintenanceMessage),
+      topBarText: fromLocalizedText(settings.topBarText),
+      footerAbout: fromLocalizedText(settings.footerAbout),
+      footerOrgName: fromLocalizedText(settings.footerOrgName),
+      footerRights: fromLocalizedText(settings.footerRights),
       contactInfo: contactInfoToJson(settings.contact),
     },
   });

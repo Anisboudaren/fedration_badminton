@@ -113,6 +113,50 @@ function SettingsAdminPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
+                  <Label>{t.admin.settings.topBarText}</Label>
+                  <Textarea
+                    value={draft.topBarText[lang]}
+                    onChange={(e) =>
+                      setSettings({ ...draft, topBarText: { ...draft.topBarText, [lang]: e.target.value } })
+                    }
+                    rows={2}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>{t.admin.settings.footerAbout}</Label>
+                  <Textarea
+                    value={draft.footerAbout[lang]}
+                    onChange={(e) =>
+                      setSettings({ ...draft, footerAbout: { ...draft.footerAbout, [lang]: e.target.value } })
+                    }
+                    rows={3}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>{t.admin.settings.footerOrgName}</Label>
+                  <Input
+                    value={draft.footerOrgName[lang]}
+                    onChange={(e) =>
+                      setSettings({
+                        ...draft,
+                        footerOrgName: { ...draft.footerOrgName, [lang]: e.target.value },
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>{t.admin.settings.footerRights}</Label>
+                  <Input
+                    value={draft.footerRights[lang]}
+                    onChange={(e) =>
+                      setSettings({
+                        ...draft,
+                        footerRights: { ...draft.footerRights, [lang]: e.target.value },
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-1.5">
                   <Label>{t.admin.settings.maintenanceMessage}</Label>
                   <Textarea
                     value={draft.maintenanceMessage[lang]}

@@ -4,6 +4,7 @@ import type {
   Article,
   Club,
   EventItem,
+  FederationMemberItem,
   MatchResult,
   MediaItem,
   Official,
@@ -43,6 +44,11 @@ import {
   upsertSponsor,
 } from "@/lib/db/repositories/collections";
 import {
+  deleteFederationMember,
+  listFederationMembers,
+  upsertFederationMember,
+} from "@/lib/db/repositories/about";
+import {
   createArticle,
   deleteArticle,
   getArticleById,
@@ -70,6 +76,8 @@ export async function listCollection(collection: ApiCollection, publishedOnly = 
       return listPlayers(publishedOnly);
     case "officials":
       return listOfficials(publishedOnly);
+    case "federation-members":
+      return listFederationMembers(publishedOnly);
     case "matches":
       return listMatches(publishedOnly);
     case "sponsors":
@@ -111,6 +119,8 @@ export async function createCollectionItem(collection: ApiCollection, body: unkn
       return upsertPlayer(withTimestamps as Player);
     case "officials":
       return upsertOfficial(withTimestamps as Official);
+    case "federation-members":
+      return upsertFederationMember(withTimestamps as FederationMemberItem);
     case "matches":
       return createMatch(withTimestamps as Omit<MatchResult, "id">);
     case "sponsors":
@@ -139,6 +149,8 @@ export async function updateCollectionItem(collection: ApiCollection, id: string
       return upsertPlayer(payload as Player);
     case "officials":
       return upsertOfficial(payload as Official);
+    case "federation-members":
+      return upsertFederationMember(payload as FederationMemberItem);
     case "matches":
       return updateMatch(id, payload as MatchResult);
     case "sponsors":
@@ -164,6 +176,8 @@ export async function deleteCollectionItem(collection: ApiCollection, id: string
       return deletePlayer(id);
     case "officials":
       return deleteOfficial(id);
+    case "federation-members":
+      return deleteFederationMember(id);
     case "matches":
       return deleteMatch(id);
     case "sponsors":

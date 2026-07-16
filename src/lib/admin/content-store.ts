@@ -4,6 +4,7 @@ import type {
   Article,
   Club,
   EventItem,
+  FederationMemberItem,
   LicenceRequest,
   MatchResult,
   MediaItem,
@@ -23,6 +24,7 @@ export type CollectionKey =
   | "media"
   | "players"
   | "officials"
+  | "federation-members"
   | "matches"
   | "sponsors"
   | "clubs"
@@ -35,6 +37,7 @@ export type CollectionMap = {
   media: MediaItem[];
   players: Player[];
   officials: Official[];
+  "federation-members": FederationMemberItem[];
   matches: MatchResult[];
   sponsors: Sponsor[];
   clubs: Club[];
@@ -72,6 +75,26 @@ export function defaultSiteSettings(): SiteSettings {
       en: "We are currently performing maintenance. Please check back soon.",
       fr: "Nous effectuons actuellement une maintenance. Revenez bientôt.",
       ar: "نقوم حالياً بأعمال صيانة. يرجى العودة قريباً.",
+    },
+    topBarText: {
+      en: "Welcome to the official website of the Algerian Badminton Federation",
+      fr: "Bienvenue sur le site officiel de la Fédération Algérienne de Badminton",
+      ar: "مرحبًا بكم في الموقع الرسمي للاتحادية الجزائرية للريشة الطائرة",
+    },
+    footerAbout: {
+      en: "The Algerian Badminton Federation works to develop and promote badminton across the national territory.",
+      fr: "La Fédération Algérienne de Badminton œuvre pour le développement et la promotion du badminton à travers tout le territoire national.",
+      ar: "تعمل الاتحادية الجزائرية للريشة الطائرة على تطوير وترقية الرياضة عبر كامل التراب الوطني.",
+    },
+    footerOrgName: {
+      en: "Algerian Badminton Federation",
+      fr: "Fédération Algérienne de Badminton",
+      ar: "الاتحادية الجزائرية للريشة الطائرة",
+    },
+    footerRights: {
+      en: "All rights reserved",
+      fr: "Tous droits réservés",
+      ar: "جميع الحقوق محفوظة",
     },
     contact: defaultSiteContactInfo(),
   };
